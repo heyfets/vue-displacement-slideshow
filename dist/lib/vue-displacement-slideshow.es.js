@@ -12959,31 +12959,31 @@ function WebGLClipping(properties) {
 }
 let _canvas;
 class ImageUtils {
-  static getDataURL(image) {
-    if (/^data:/i.test(image.src)) {
-      return image.src;
+  static getDataURL(image2) {
+    if (/^data:/i.test(image2.src)) {
+      return image2.src;
     }
     if (typeof HTMLCanvasElement == "undefined") {
-      return image.src;
+      return image2.src;
     }
     let canvas;
-    if (image instanceof HTMLCanvasElement) {
-      canvas = image;
+    if (image2 instanceof HTMLCanvasElement) {
+      canvas = image2;
     } else {
       if (_canvas === void 0)
         _canvas = createElementNS("canvas");
-      _canvas.width = image.width;
-      _canvas.height = image.height;
+      _canvas.width = image2.width;
+      _canvas.height = image2.height;
       const context = _canvas.getContext("2d");
-      if (image instanceof ImageData) {
-        context.putImageData(image, 0, 0);
+      if (image2 instanceof ImageData) {
+        context.putImageData(image2, 0, 0);
       } else {
-        context.drawImage(image, 0, 0, image.width, image.height);
+        context.drawImage(image2, 0, 0, image2.width, image2.height);
       }
       canvas = _canvas;
     }
     if (canvas.width > 2048 || canvas.height > 2048) {
-      console.warn("THREE.ImageUtils.getDataURL: Image converted to jpg for performance reasons", image);
+      console.warn("THREE.ImageUtils.getDataURL: Image converted to jpg for performance reasons", image2);
       return canvas.toDataURL("image/jpeg", 0.6);
     } else {
       return canvas.toDataURL("image/png");
@@ -12992,12 +12992,12 @@ class ImageUtils {
 }
 let textureId = 0;
 class Texture extends EventDispatcher {
-  constructor(image = Texture.DEFAULT_IMAGE, mapping = Texture.DEFAULT_MAPPING, wrapS = ClampToEdgeWrapping, wrapT = ClampToEdgeWrapping, magFilter = LinearFilter, minFilter = LinearMipmapLinearFilter, format = RGBAFormat, type = UnsignedByteType, anisotropy = 1, encoding = LinearEncoding) {
+  constructor(image2 = Texture.DEFAULT_IMAGE, mapping = Texture.DEFAULT_MAPPING, wrapS = ClampToEdgeWrapping, wrapT = ClampToEdgeWrapping, magFilter = LinearFilter, minFilter = LinearMipmapLinearFilter, format = RGBAFormat, type = UnsignedByteType, anisotropy = 1, encoding = LinearEncoding) {
     super();
     Object.defineProperty(this, "id", { value: textureId++ });
     this.uuid = generateUUID();
     this.name = "";
-    this.image = image;
+    this.image = image2;
     this.mipmaps = [];
     this.mapping = mapping;
     this.wrapS = wrapS;
@@ -13087,30 +13087,30 @@ class Texture extends EventDispatcher {
       unpackAlignment: this.unpackAlignment
     };
     if (this.image !== void 0) {
-      const image = this.image;
-      if (image.uuid === void 0) {
-        image.uuid = generateUUID();
+      const image2 = this.image;
+      if (image2.uuid === void 0) {
+        image2.uuid = generateUUID();
       }
-      if (!isRootObject && meta.images[image.uuid] === void 0) {
+      if (!isRootObject && meta.images[image2.uuid] === void 0) {
         let url;
-        if (Array.isArray(image)) {
+        if (Array.isArray(image2)) {
           url = [];
-          for (let i = 0, l = image.length; i < l; i++) {
-            if (image[i].isDataTexture) {
-              url.push(serializeImage(image[i].image));
+          for (let i = 0, l = image2.length; i < l; i++) {
+            if (image2[i].isDataTexture) {
+              url.push(serializeImage(image2[i].image));
             } else {
-              url.push(serializeImage(image[i]));
+              url.push(serializeImage(image2[i]));
             }
           }
         } else {
-          url = serializeImage(image);
+          url = serializeImage(image2);
         }
-        meta.images[image.uuid] = {
-          uuid: image.uuid,
+        meta.images[image2.uuid] = {
+          uuid: image2.uuid,
           url
         };
       }
-      output.image = image.uuid;
+      output.image = image2.uuid;
     }
     if (JSON.stringify(this.userData) !== "{}")
       output.userData = this.userData;
@@ -13173,16 +13173,16 @@ class Texture extends EventDispatcher {
 Texture.DEFAULT_IMAGE = void 0;
 Texture.DEFAULT_MAPPING = UVMapping;
 Texture.prototype.isTexture = true;
-function serializeImage(image) {
-  if (typeof HTMLImageElement !== "undefined" && image instanceof HTMLImageElement || typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement || typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) {
-    return ImageUtils.getDataURL(image);
+function serializeImage(image2) {
+  if (typeof HTMLImageElement !== "undefined" && image2 instanceof HTMLImageElement || typeof HTMLCanvasElement !== "undefined" && image2 instanceof HTMLCanvasElement || typeof ImageBitmap !== "undefined" && image2 instanceof ImageBitmap) {
+    return ImageUtils.getDataURL(image2);
   } else {
-    if (image.data) {
+    if (image2.data) {
       return {
-        data: Array.prototype.slice.call(image.data),
-        width: image.width,
-        height: image.height,
-        type: image.data.constructor.name
+        data: Array.prototype.slice.call(image2.data),
+        width: image2.width,
+        height: image2.height,
+        type: image2.data.constructor.name
       };
     } else {
       console.warn("THREE.Texture: Unable to serialize Texture.");
@@ -13588,10 +13588,10 @@ function WebGLCubeMaps(renderer2) {
           const cubemap = cubemaps.get(texture).texture;
           return mapTextureMapping(cubemap, texture.mapping);
         } else {
-          const image = texture.image;
-          if (image && image.height > 0) {
+          const image2 = texture.image;
+          if (image2 && image2.height > 0) {
             const currentRenderTarget = renderer2.getRenderTarget();
-            const renderTarget = new WebGLCubeRenderTarget(image.height / 2);
+            const renderTarget = new WebGLCubeRenderTarget(image2.height / 2);
             renderTarget.fromEquirectangularTexture(renderer2, texture);
             cubemaps.set(texture, renderTarget);
             renderer2.setRenderTarget(currentRenderTarget);
@@ -14404,8 +14404,8 @@ function WebGLCubeUVMaps(renderer2) {
         if (cubeUVmaps.has(texture)) {
           return cubeUVmaps.get(texture).texture;
         } else {
-          const image = texture.image;
-          if (isEquirectMap && image && image.height > 0 || isCubeMap && image && isCubeTextureComplete(image)) {
+          const image2 = texture.image;
+          if (isEquirectMap && image2 && image2.height > 0 || isCubeMap && image2 && isCubeTextureComplete(image2)) {
             const currentRenderTarget = renderer2.getRenderTarget();
             if (pmremGenerator === null)
               pmremGenerator = new PMREMGenerator(renderer2);
@@ -14422,11 +14422,11 @@ function WebGLCubeUVMaps(renderer2) {
     }
     return texture;
   }
-  function isCubeTextureComplete(image) {
+  function isCubeTextureComplete(image2) {
     let count = 0;
     const length = 6;
     for (let i = 0; i < length; i++) {
-      if (image[i] !== void 0)
+      if (image2[i] !== void 0)
         count++;
     }
     return count === length;
@@ -17829,36 +17829,36 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
   function createCanvas(width, height) {
     return useOffscreenCanvas ? new OffscreenCanvas(width, height) : createElementNS("canvas");
   }
-  function resizeImage(image, needsPowerOfTwo, needsNewCanvas, maxSize) {
+  function resizeImage(image2, needsPowerOfTwo, needsNewCanvas, maxSize) {
     let scale = 1;
-    if (image.width > maxSize || image.height > maxSize) {
-      scale = maxSize / Math.max(image.width, image.height);
+    if (image2.width > maxSize || image2.height > maxSize) {
+      scale = maxSize / Math.max(image2.width, image2.height);
     }
     if (scale < 1 || needsPowerOfTwo === true) {
-      if (typeof HTMLImageElement !== "undefined" && image instanceof HTMLImageElement || typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement || typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) {
+      if (typeof HTMLImageElement !== "undefined" && image2 instanceof HTMLImageElement || typeof HTMLCanvasElement !== "undefined" && image2 instanceof HTMLCanvasElement || typeof ImageBitmap !== "undefined" && image2 instanceof ImageBitmap) {
         const floor = needsPowerOfTwo ? floorPowerOfTwo : Math.floor;
-        const width = floor(scale * image.width);
-        const height = floor(scale * image.height);
+        const width = floor(scale * image2.width);
+        const height = floor(scale * image2.height);
         if (_canvas2 === void 0)
           _canvas2 = createCanvas(width, height);
         const canvas = needsNewCanvas ? createCanvas(width, height) : _canvas2;
         canvas.width = width;
         canvas.height = height;
         const context = canvas.getContext("2d");
-        context.drawImage(image, 0, 0, width, height);
-        console.warn("THREE.WebGLRenderer: Texture has been resized from (" + image.width + "x" + image.height + ") to (" + width + "x" + height + ").");
+        context.drawImage(image2, 0, 0, width, height);
+        console.warn("THREE.WebGLRenderer: Texture has been resized from (" + image2.width + "x" + image2.height + ") to (" + width + "x" + height + ").");
         return canvas;
       } else {
-        if ("data" in image) {
-          console.warn("THREE.WebGLRenderer: Image in DataTexture is too big (" + image.width + "x" + image.height + ").");
+        if ("data" in image2) {
+          console.warn("THREE.WebGLRenderer: Image in DataTexture is too big (" + image2.width + "x" + image2.height + ").");
         }
-        return image;
+        return image2;
       }
     }
-    return image;
+    return image2;
   }
-  function isPowerOfTwo$1(image) {
-    return isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
+  function isPowerOfTwo$1(image2) {
+    return isPowerOfTwo(image2.width) && isPowerOfTwo(image2.height);
   }
   function textureNeedsPowerOfTwo(texture) {
     if (isWebGL2)
@@ -17998,10 +17998,10 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
     if (texture.isVideoTexture)
       updateVideoTexture(texture);
     if (texture.version > 0 && textureProperties.__version !== texture.version) {
-      const image = texture.image;
-      if (image === void 0) {
+      const image2 = texture.image;
+      if (image2 === void 0) {
         console.warn("THREE.WebGLRenderer: Texture marked for update but image is undefined");
-      } else if (image.complete === false) {
+      } else if (image2.complete === false) {
         console.warn("THREE.WebGLRenderer: Texture marked for update but image is incomplete");
       } else {
         uploadTexture(textureProperties, texture, slot);
@@ -18109,8 +18109,8 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
     _gl.pixelStorei(_gl.UNPACK_ALIGNMENT, texture.unpackAlignment);
     _gl.pixelStorei(_gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, _gl.NONE);
     const needsPowerOfTwo = textureNeedsPowerOfTwo(texture) && isPowerOfTwo$1(texture.image) === false;
-    const image = resizeImage(texture.image, needsPowerOfTwo, false, maxTextureSize);
-    const supportsMips = isPowerOfTwo$1(image) || isWebGL2, glFormat = utils.convert(texture.format);
+    const image2 = resizeImage(texture.image, needsPowerOfTwo, false, maxTextureSize);
+    const supportsMips = isPowerOfTwo$1(image2) || isWebGL2, glFormat = utils.convert(texture.format);
     let glType = utils.convert(texture.type), glInternalFormat = getInternalFormat(texture.internalFormat, glFormat, glType, texture.encoding);
     setTextureParameters(textureType, texture, supportsMips);
     let mipmap;
@@ -18147,7 +18147,7 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
           glType = utils.convert(texture.type);
         }
       }
-      state.texImage2D(_gl.TEXTURE_2D, 0, glInternalFormat, image.width, image.height, 0, glFormat, glType, null);
+      state.texImage2D(_gl.TEXTURE_2D, 0, glInternalFormat, image2.width, image2.height, 0, glFormat, glType, null);
     } else if (texture.isDataTexture) {
       if (mipmaps.length > 0 && supportsMips) {
         for (let i = 0, il = mipmaps.length; i < il; i++) {
@@ -18157,7 +18157,7 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
         texture.generateMipmaps = false;
         textureProperties.__maxMipLevel = mipmaps.length - 1;
       } else {
-        state.texImage2D(_gl.TEXTURE_2D, 0, glInternalFormat, image.width, image.height, 0, glFormat, glType, image.data);
+        state.texImage2D(_gl.TEXTURE_2D, 0, glInternalFormat, image2.width, image2.height, 0, glFormat, glType, image2.data);
         textureProperties.__maxMipLevel = 0;
       }
     } else if (texture.isCompressedTexture) {
@@ -18175,10 +18175,10 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
       }
       textureProperties.__maxMipLevel = mipmaps.length - 1;
     } else if (texture.isDataTexture2DArray) {
-      state.texImage3D(_gl.TEXTURE_2D_ARRAY, 0, glInternalFormat, image.width, image.height, image.depth, 0, glFormat, glType, image.data);
+      state.texImage3D(_gl.TEXTURE_2D_ARRAY, 0, glInternalFormat, image2.width, image2.height, image2.depth, 0, glFormat, glType, image2.data);
       textureProperties.__maxMipLevel = 0;
     } else if (texture.isDataTexture3D) {
-      state.texImage3D(_gl.TEXTURE_3D, 0, glInternalFormat, image.width, image.height, image.depth, 0, glFormat, glType, image.data);
+      state.texImage3D(_gl.TEXTURE_3D, 0, glInternalFormat, image2.width, image2.height, image2.depth, 0, glFormat, glType, image2.data);
       textureProperties.__maxMipLevel = 0;
     } else {
       if (mipmaps.length > 0 && supportsMips) {
@@ -18189,12 +18189,12 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
         texture.generateMipmaps = false;
         textureProperties.__maxMipLevel = mipmaps.length - 1;
       } else {
-        state.texImage2D(_gl.TEXTURE_2D, 0, glInternalFormat, glFormat, glType, image);
+        state.texImage2D(_gl.TEXTURE_2D, 0, glInternalFormat, glFormat, glType, image2);
         textureProperties.__maxMipLevel = 0;
       }
     }
     if (textureNeedsGenerateMipmaps(texture, supportsMips)) {
-      generateMipmap(textureType, texture, image.width, image.height);
+      generateMipmap(textureType, texture, image2.width, image2.height);
     }
     textureProperties.__version = texture.version;
     if (texture.onUpdate)
@@ -18220,7 +18220,7 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
         cubeImage[i] = isDataTexture ? texture.image[i].image : texture.image[i];
       }
     }
-    const image = cubeImage[0], supportsMips = isPowerOfTwo$1(image) || isWebGL2, glFormat = utils.convert(texture.format), glType = utils.convert(texture.type), glInternalFormat = getInternalFormat(texture.internalFormat, glFormat, glType, texture.encoding);
+    const image2 = cubeImage[0], supportsMips = isPowerOfTwo$1(image2) || isWebGL2, glFormat = utils.convert(texture.format), glType = utils.convert(texture.type), glInternalFormat = getInternalFormat(texture.internalFormat, glFormat, glType, texture.encoding);
     setTextureParameters(_gl.TEXTURE_CUBE_MAP, texture, supportsMips);
     let mipmaps;
     if (isCompressed) {
@@ -18261,7 +18261,7 @@ function WebGLTextures(_gl, extensions, state, properties, capabilities, utils, 
       textureProperties.__maxMipLevel = mipmaps.length;
     }
     if (textureNeedsGenerateMipmaps(texture, supportsMips)) {
-      generateMipmap(_gl.TEXTURE_CUBE_MAP, texture, image.width, image.height);
+      generateMipmap(_gl.TEXTURE_CUBE_MAP, texture, image2.width, image2.height);
     }
     textureProperties.__version = texture.version;
     if (texture.onUpdate)
@@ -20769,20 +20769,20 @@ function WebGLRenderer(parameters = {}) {
     const unpackSkipPixels = _gl.getParameter(_gl.UNPACK_SKIP_PIXELS);
     const unpackSkipRows = _gl.getParameter(_gl.UNPACK_SKIP_ROWS);
     const unpackSkipImages = _gl.getParameter(_gl.UNPACK_SKIP_IMAGES);
-    const image = srcTexture.isCompressedTexture ? srcTexture.mipmaps[0] : srcTexture.image;
-    _gl.pixelStorei(_gl.UNPACK_ROW_LENGTH, image.width);
-    _gl.pixelStorei(_gl.UNPACK_IMAGE_HEIGHT, image.height);
+    const image2 = srcTexture.isCompressedTexture ? srcTexture.mipmaps[0] : srcTexture.image;
+    _gl.pixelStorei(_gl.UNPACK_ROW_LENGTH, image2.width);
+    _gl.pixelStorei(_gl.UNPACK_IMAGE_HEIGHT, image2.height);
     _gl.pixelStorei(_gl.UNPACK_SKIP_PIXELS, sourceBox.min.x);
     _gl.pixelStorei(_gl.UNPACK_SKIP_ROWS, sourceBox.min.y);
     _gl.pixelStorei(_gl.UNPACK_SKIP_IMAGES, sourceBox.min.z);
     if (srcTexture.isDataTexture || srcTexture.isDataTexture3D) {
-      _gl.texSubImage3D(glTarget, level, position.x, position.y, position.z, width, height, depth, glFormat, glType, image.data);
+      _gl.texSubImage3D(glTarget, level, position.x, position.y, position.z, width, height, depth, glFormat, glType, image2.data);
     } else {
       if (srcTexture.isCompressedTexture) {
         console.warn("THREE.WebGLRenderer.copyTextureToTexture3D: untested support for compressed srcTexture.");
-        _gl.compressedTexSubImage3D(glTarget, level, position.x, position.y, position.z, width, height, depth, glFormat, image.data);
+        _gl.compressedTexSubImage3D(glTarget, level, position.x, position.y, position.z, width, height, depth, glFormat, image2.data);
       } else {
-        _gl.texSubImage3D(glTarget, level, position.x, position.y, position.z, width, height, depth, glFormat, glType, image);
+        _gl.texSubImage3D(glTarget, level, position.x, position.y, position.z, width, height, depth, glFormat, glType, image2);
       }
     }
     _gl.pixelStorei(_gl.UNPACK_ROW_LENGTH, unpackRowLen);
@@ -20963,7 +20963,7 @@ class ImageLoader extends Loader {
       }, 0);
       return cached;
     }
-    const image = createElementNS("img");
+    const image2 = createElementNS("img");
     function onImageLoad() {
       removeEventListeners();
       Cache.add(url, this);
@@ -20979,18 +20979,18 @@ class ImageLoader extends Loader {
       scope.manager.itemEnd(url);
     }
     function removeEventListeners() {
-      image.removeEventListener("load", onImageLoad, false);
-      image.removeEventListener("error", onImageError, false);
+      image2.removeEventListener("load", onImageLoad, false);
+      image2.removeEventListener("error", onImageError, false);
     }
-    image.addEventListener("load", onImageLoad, false);
-    image.addEventListener("error", onImageError, false);
+    image2.addEventListener("load", onImageLoad, false);
+    image2.addEventListener("error", onImageError, false);
     if (url.substr(0, 5) !== "data:") {
       if (this.crossOrigin !== void 0)
-        image.crossOrigin = this.crossOrigin;
+        image2.crossOrigin = this.crossOrigin;
     }
     scope.manager.itemStart(url);
-    image.src = url;
-    return image;
+    image2.src = url;
+    return image2;
   }
 }
 class TextureLoader extends Loader {
@@ -21002,8 +21002,8 @@ class TextureLoader extends Loader {
     const loader = new ImageLoader(this.manager);
     loader.setCrossOrigin(this.crossOrigin);
     loader.setPath(this.path);
-    loader.load(url, function(image) {
-      texture.image = image;
+    loader.load(url, function(image2) {
+      texture.image = image2;
       texture.needsUpdate = true;
       if (onLoad !== void 0) {
         onLoad(texture);
@@ -21012,6 +21012,34 @@ class TextureLoader extends Loader {
     return texture;
   }
 }
+class VideoTexture extends Texture {
+  constructor(video, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy) {
+    super(video, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy);
+    this.format = format !== void 0 ? format : RGBFormat;
+    this.minFilter = minFilter !== void 0 ? minFilter : LinearFilter;
+    this.magFilter = magFilter !== void 0 ? magFilter : LinearFilter;
+    this.generateMipmaps = false;
+    const scope = this;
+    function updateVideo() {
+      scope.needsUpdate = true;
+      video.requestVideoFrameCallback(updateVideo);
+    }
+    if ("requestVideoFrameCallback" in video) {
+      video.requestVideoFrameCallback(updateVideo);
+    }
+  }
+  clone() {
+    return new this.constructor(this.image).copy(this);
+  }
+  update() {
+    const video = this.image;
+    const hasVideoFrameCallback = "requestVideoFrameCallback" in video;
+    if (hasVideoFrameCallback === false && video.readyState >= video.HAVE_CURRENT_DATA) {
+      this.needsUpdate = true;
+    }
+  }
+}
+VideoTexture.prototype.isVideoTexture = true;
 function _assertThisInitialized(self) {
   if (self === void 0) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -24730,14 +24758,16 @@ const _sfc_main = {
       this.transitionIn();
     },
     loadTextures() {
-      this.images.forEach((image, index) => {
-        let textureLoaded = this.insertImage(image, index);
+      this.images.forEach((image2, index) => {
+        let textureLoaded = this.insertImage(image2, index);
         this.imagesLoaded.push(textureLoaded);
       });
       if (this.startAsTransparent) {
         this.insertTransparentTexture(0);
       }
       const loader = new TextureLoader();
+      const videoTexture = new VideoTexture();
+      videoTexture.crossOrigin = "";
       loader.crossOrigin = "";
       this.disp = loader.load(this.displacement, this.render);
       this.disp.wrapS = RepeatWrapping;
@@ -24823,21 +24853,39 @@ const _sfc_main = {
       }
     },
     insertImage(path, index = this.textures.length) {
-      const loader = new TextureLoader();
-      loader.crossOrigin = "";
-      return new Promise((resolve) => {
-        let texture = loader.load(path, () => {
-          this.render();
-          resolve();
+      let fileExtension = image.split(".").pop();
+      if (fileExtension !== "mp4" || fileExtension !== "webm") {
+        const loader = new TextureLoader();
+        loader.crossOrigin = "";
+        return new Promise((resolve) => {
+          let texture = loader.load(path, () => {
+            this.render();
+            resolve();
+          });
+          texture.magFilter = LinearFilter;
+          texture.minFilter = LinearFilter;
+          texture.alpha = 1;
+          this.textures.splice(index, 0, texture);
+          if (index <= this.currentImage && this.loaded) {
+            this.currentImage++;
+          }
         });
-        texture.magFilter = LinearFilter;
-        texture.minFilter = LinearFilter;
-        texture.alpha = 1;
-        this.textures.splice(index, 0, texture);
-        if (index <= this.currentImage && this.loaded) {
-          this.currentImage++;
-        }
-      });
+      } else {
+        const videoTexture = new VideoTexture();
+        return new Promise((resolve) => {
+          let texture = videoTexture.load(path, () => {
+            this.render();
+            resolve();
+          });
+          texture.magFilter = LinearFilter;
+          texture.minFilter = LinearFilter;
+          texture.alpha = 1;
+          this.textures.splice(index, 0, texture);
+          if (index <= this.currentImage && this.loaded) {
+            this.currentImage++;
+          }
+        });
+      }
     },
     insertTransparentTexture(index) {
       const texture = new Texture();
