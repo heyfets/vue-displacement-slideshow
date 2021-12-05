@@ -4,10 +4,10 @@
 	                            :intensity="0.2"
 	                            :speedIn="1.4"
 	                            :speedOut="1.4"
-	                            ease="expo.inOut"
+	                            ease="Liner.easeInOut"
 	                            ref="slideshow"
 	                            :is-interactive="true"
-	                            :interactionVelocity="{ x : 15, y : 5 }"
+	                            :interactionVelocity="{ x : 5, y : 150 }"
 	                            :angle="1.2"/>
 </template>
 
@@ -18,6 +18,12 @@
 	//import VueDisplacementSlideshow from "../dist/lib/vue-displacement-slideshow.es.js";
 
 	export default {
+    data: function() {
+      return {
+        scrollCompleted: 1,
+        scrollBlocked: 0,
+      }
+    },
 		components: {
 			VueDisplacementSlideshow,
 		},
@@ -26,7 +32,6 @@
 				return [
 					new URL('./assets/anterne.jpg', import.meta.url).href,
 					new URL('./assets/dolomites.jpg', import.meta.url).href,
-					new URL('./assets/glencoe.jpg', import.meta.url).href,
 				];
 			},
 			displacement(){
@@ -34,17 +39,48 @@
 			}
 		},
 		methods: {
-			init() {
-				//We loop through all our images by calling the 'next' method of our component every 2 seconds
-				setInterval(() => {
-					this.$refs.slideshow.next();
-				}, 5000);
-			}
-		},
+      handleScroll: function(delta = 0) {
+        if (delta === 1
+            && !this.$refs.slideshow.isAnimating
+            && this.scrollCompleted === 1
+            && this.scrollBlocked === 0) {
+          this.scrollCompleted = 0;
+          if (this.$refs.slideshow.textures[this.$refs.slideshow.currentImage].isVideo) {
+            this.$refs.slideshow.textures[this.$refs.slideshow.currentImage].image.pause();
+          }
+          this.$refs.slideshow.next();
+          if (this.$refs.slideshow.textures[this.$refs.slideshow.currentImage].isVideo) {
+            this.$refs.slideshow.textures[this.$refs.slideshow.currentImage].image.play();
+          }
+          setTimeout(() => this.scrollCompleted = 1, 2000);
+        }
+        if (delta === -1
+            && !this.$refs.slideshow.isAnimating
+            && this.scrollCompleted === 1
+            && this.scrollBlocked === 0) {
+          this.scrollCompleted = 0;
+          if (this.$refs.slideshow.textures[this.$refs.slideshow.currentImage].isVideo) {
+            this.$refs.slideshow.textures[this.$refs.slideshow.currentImage].image.pause();
+          }
+          this.$refs.slideshow.previous();
+          if (this.$refs.slideshow.textures[this.$refs.slideshow.currentImage].isVideo) {
+            this.$refs.slideshow.textures[this.$refs.slideshow.currentImage].image.play();
+          }
+          setTimeout(() => this.scrollCompleted = 1, 2000);
+        }
+      },
+    },
 		mounted() {
-			this.init();
-		}
-	}
+      window.addEventListener('wheel', event => {
+        const delta = Math.sign(event.deltaY);
+        this.handleScroll(delta);
+
+      })
+		},
+    destroyed() {
+      window.removeEventListener('wheel', this.handleScroll)
+    }
+  }
 
 </script>
 
@@ -56,6 +92,7 @@
 
 	html, body, #app {
 		height: 100%;
+    overflow: hidden;
 	}
 
 </style>

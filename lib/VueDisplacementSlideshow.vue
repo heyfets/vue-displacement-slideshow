@@ -21,6 +21,7 @@ import {gsap} from 'gsap';
 
 import {vertex, fragment} from "./shader.js";
 import {mod} from './utils.js';
+import * as THREE from "three";
 
 const scene = new Scene();
 const renderer = new WebGLRenderer({antialias: false, alpha: true});
@@ -230,8 +231,6 @@ export default {
       }
 
       const loader = new TextureLoader();
-      const videoTexture = new VideoTexture();
-      videoTexture.crossOrigin = '';
       loader.crossOrigin = '';
       this.disp = loader.load(this.displacement, this.render);
       this.disp.wrapS = RepeatWrapping;
@@ -323,29 +322,40 @@ export default {
       }
     },
     insertImage(path, index = this.textures.length) {
-      let fileExtension = image.split('.').pop();
-      if (fileExtension !== 'mp4' || fileExtension !== 'webm') {
-        const loader = new TextureLoader();
-        loader.crossOrigin = '';
+      const fileExtension = path.split('.').pop();
+      if (fileExtension === "mp4" || fileExtension === "webm") {
+        const video = document.createElement('video');
+        video.src = path;
+        // video.width = window.innerWidth;
+        // video.height = window.innerHeight;
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.load();
+        // video.play();
+        const videoTexture = new VideoTexture(video);
+        videoTexture.magFilter = LinearFilter;
+        videoTexture.minFilter = LinearFilter;
+        videoTexture.format = THREE.RGBFormat;
+        videoTexture.alpha = 1;
+        videoTexture.isVideo = 1;
+
         return new Promise((resolve) => {
-          let texture = loader.load(path, () => {
-            this.render();
-            resolve();
-          });
-          texture.magFilter = LinearFilter;
-          texture.minFilter = LinearFilter;
-          texture.alpha = 1;
-          this.textures.splice(index, 0, texture);
+          resolve();
+          this.render();
+          this.textures.splice(index, 0, videoTexture);
 
           if (index <= this.currentImage && this.loaded) {
             //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
             this.currentImage++;
           }
         });
-      } else {
-        const videoTexture = new VideoTexture();
+      }
+      if (fileExtension === "jpg" || fileExtension === "png") {
+        const loader = new TextureLoader();
+        loader.crossOrigin = '';
         return new Promise((resolve) => {
-          let texture = videoTexture.load(path, () => {
+          let texture = loader.load(path, () => {
             this.render();
             resolve();
           });
