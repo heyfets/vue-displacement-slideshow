@@ -15,7 +15,7 @@
 
 	import VueDisplacementSlideshow from "../lib/VueDisplacementSlideshow.vue";
 	// uncomment to test the built component
-	//import VueDisplacementSlideshow from "../dist/lib/vue-displacement-slideshow.es.js";
+	// import VueDisplacementSlideshow from "../dist/lib/vue-displacement-slideshow.es.js";
 
 	export default {
     data: function() {
