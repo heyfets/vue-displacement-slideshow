@@ -9,8 +9,7 @@ import {WebGLRenderer} from 'three/src/renderers/WebGLRenderer.js';
 import {OrthographicCamera} from 'three/src/cameras/OrthographicCamera.js';
 import {TextureLoader} from 'three/src/loaders/TextureLoader.js';
 import {VideoTexture} from 'three/src/textures/VideoTexture.js';
-import {LinearFilter} from 'three/src/constants.js';
-import {RepeatWrapping} from 'three/src/constants.js';
+import {LinearFilter, RepeatWrapping} from 'three/src/constants.js';
 import {ShaderMaterial} from 'three/src/materials/ShaderMaterial.js';
 import {PlaneBufferGeometry} from 'three/src/geometries/PlaneGeometry.js';
 import {Mesh} from 'three/src/objects/Mesh.js';
@@ -19,7 +18,7 @@ import {Vector2} from 'three/src/math/Vector2.js';
 
 import {gsap} from 'gsap';
 
-import {vertex, fragment} from "./shader.js";
+import {fragment, vertex} from "./shader.js";
 import {mod} from './utils.js';
 import * as THREE from "three";
 
@@ -103,7 +102,8 @@ export default {
       previousMousePosition: null,
       rafID: null,
       mouseSpeed: {value: 0},
-      loaded: false
+      loaded: false,
+      videoAspect: false
     }
   },
   computed: {
@@ -120,8 +120,27 @@ export default {
           1000
       );
       camera.position.z = 1;
+      // const canvas = renderer.domElement;
+      // camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      // camera.updateProjectionMatrix();
       return camera;
-    }
+    },
+    videoCamera() {
+      const camera = new OrthographicCamera(
+          this.slider.offsetWidth / -2,
+          this.slider.offsetWidth / 2,
+          this.slider.offsetHeight / 2,
+          this.slider.offsetHeight / -2,
+          1,
+          1000
+      );
+      camera.position.z = 1;
+      const canvas = renderer.domElement;
+      camera.aspect = 1920 / 1080;
+      camera.updateProjectionMatrix();
+      return camera;
+    },
+
   },
   methods: {
     initScene() {
@@ -132,6 +151,9 @@ export default {
     },
     render() {
       renderer.render(scene, this.camera);
+    },
+    renderVideo() {
+      renderer.render(scene, this.videoCamera);
     },
     transitionIn() {
       this.currentTransition = gsap.to(this.mat.uniforms.dispFactor, {
@@ -321,6 +343,10 @@ export default {
         this.currentTransition.pause();
       }
     },
+    prepareVideo(videoTexture) {
+      console.log(videoTexture.image.videoWidth);
+      // this.cover(videoTexture, window.innerWidth / window.innerHeight)
+    },
     insertImage(path, index = this.textures.length) {
       const fileExtension = path.split('.').pop();
       if (fileExtension === "mp4" || fileExtension === "webm") {
@@ -328,21 +354,29 @@ export default {
         video.src = path;
         // video.width = window.innerWidth;
         // video.height = window.innerHeight;
-        video.autoplay = true;
         video.muted = true;
         video.loop = true;
+        video.preload = 'metadata'
         video.load();
-        // video.play();
+        video.timelineSelector = false;
+        video.playsinline = true;
+        video.hideVideo = true;
         const videoTexture = new VideoTexture(video);
         videoTexture.magFilter = LinearFilter;
         videoTexture.minFilter = LinearFilter;
         videoTexture.format = THREE.RGBFormat;
         videoTexture.alpha = 1;
         videoTexture.isVideo = 1;
+        // console.log(videoTexture.image.videoWidth);
+        // console.log(videoTexture.image[video.videoHeight]);
+        video.onloadedmetadata = async function(e){
+          this.videoAspect = video.videoWidth / video.videoHeight;
+        }
 
         return new Promise((resolve) => {
+          this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
+          this.renderVideo();
           resolve();
-          this.render();
           this.textures.splice(index, 0, videoTexture);
 
           if (index <= this.currentImage && this.loaded) {
@@ -351,7 +385,7 @@ export default {
           }
         });
       }
-      if (fileExtension === "jpg" || fileExtension === "png") {
+      if (fileExtension === "jpg" || fileExtension === "png" || fileExtension === "gif") {
         const loader = new TextureLoader();
         loader.crossOrigin = '';
         return new Promise((resolve) => {
@@ -371,7 +405,18 @@ export default {
         });
       }
     },
-
+    getVideoDimensions (e) {
+      console.log(e);
+      // e.target.videoHeight, e.target.videoWeight
+    },
+    cover: function ( videoAspect, aspect, texture ) {
+      console.log(videoAspect);
+      if ( aspect < videoAspect ) {
+        texture.matrix.setUvTransform( 0, 0, aspect / videoAspect, 1, 0, 0.5, 0.5 );
+      } else {
+        texture.matrix.setUvTransform( 0, 0, 1, videoAspect / aspect, 0, 0.5, 0.5 );
+      }
+    },
     insertTransparentTexture(index) {
       const texture = new Texture();
       texture.image = {
