@@ -22,9 +22,6 @@ import {fragment, vertex} from "./shader.js";
 import {mod} from './utils.js';
 import * as THREE from "three";
 
-const scene = new Scene();
-const renderer = new WebGLRenderer({antialias: false, alpha: true});
-
 export default {
   name: "vue-displacement-slideshow",
   props: {
@@ -91,6 +88,8 @@ export default {
   data() {
     return {
       currentImage: 0,
+                scene: new Scene(),
+                renderer: new WebGLRenderer({antialias: false, alpha: true}),
       mat: null,
       textures: [],
       disp: null,
@@ -144,13 +143,13 @@ export default {
   },
   methods: {
     initScene() {
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setClearColor(0xffffff, 0.0);
-      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
-      this.$refs.slider.appendChild(renderer.domElement);
+                this.renderer.setPixelRatio(window.devicePixelRatio);
+                this.renderer.setClearColor(0xffffff, 0.0);
+                this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+                this.$refs.slider.appendChild(this.renderer.domElement);
     },
     render() {
-      renderer.render(scene, this.camera);
+                this.renderer.render(this.scene, this.camera);
     },
     renderVideo() {
       renderer.render(scene, this.videoCamera);
@@ -309,7 +308,7 @@ export default {
       });
       const geometry = new PlaneBufferGeometry(this.slider.offsetWidth, this.slider.offsetHeight, 1);
       const object = new Mesh(geometry, this.mat);
-      scene.add(object);
+                this.scene.add(object);
     },
     init() {
       this.initScene();
@@ -326,7 +325,7 @@ export default {
         width: this.preserveAspectRatio ? this.slider.offsetWidth : this.textures[this.currentImage].image.naturalWidth,
         height: this.preserveAspectRatio ? this.slider.offsetHeight : this.textures[this.currentImage].image.naturalHeight
       };
-      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+                this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
       this.camera.aspect = this.slider.innerWidth / this.slider.innerHeight;
       this.camera.updateProjectionMatrix();
       this.mat.uniforms.resolution.value.set(ratio.width, ratio.height);
