@@ -88,8 +88,8 @@ export default {
   data() {
     return {
       currentImage: 0,
-                scene: new Scene(),
-                renderer: new WebGLRenderer({antialias: false, alpha: true}),
+      scene: new Scene(),
+      renderer: new WebGLRenderer({antialias: false, alpha: true}),
       mat: null,
       textures: [],
       disp: null,
@@ -143,13 +143,13 @@ export default {
   },
   methods: {
     initScene() {
-                this.renderer.setPixelRatio(window.devicePixelRatio);
-                this.renderer.setClearColor(0xffffff, 0.0);
-                this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
-                this.$refs.slider.appendChild(this.renderer.domElement);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setClearColor(0xffffff, 0.0);
+        this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+        this.$refs.slider.appendChild(this.renderer.domElement);
     },
     render() {
-                this.renderer.render(this.scene, this.camera);
+        this.renderer.render(this.scene, this.camera);
     },
     renderVideo() {
       this.renderer.render(this.scene, this.videoCamera);
@@ -344,27 +344,21 @@ export default {
       }
     },
     setVideoSize(video) {
-      console.log(video.width);
-      console.log(video.height);
       if (video.width > video.height) {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          console.log(1);
           const countedHeight = this.slider.offsetWidth*video.height/video.width;
-          renderer.setSize(this.slider.offsetWidth, countedHeight);
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         } else {
-          console.log(2);
           const countedWidth = video.width*this.slider.offsetHeight/video.height;
-          renderer.setSize(countedWidth, this.slider.offsetHeight);
+          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
         }
       } else {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          console.log(3);
           const countedHeight = this.slider.offsetWidth*video.height/video.width;
-          renderer.setSize(this.slider.offsetWidth, countedHeight);
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         } else {
-          console.log(4);
           const countedHeight = this.slider.offsetWidth*video.height/video.width;
-          renderer.setSize(this.slider.offsetWidth, countedHeight);
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         }
       }
     },
@@ -380,34 +374,29 @@ export default {
 
       if (ratio.width > ratio.height) {
         if (ratio.height > this.slider.offsetHeight) {
-          console.log(1);
           const countedHeight = this.slider.offsetWidth*heightToCount/widthToCount;
-          renderer.setSize(this.slider.offsetWidth, countedHeight);
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         } else {
-          console.log(2);
           const countedHeight = widthToCount*heightToCount/this.slider.offsetWidth;
-          renderer.setSize(this.slider.offsetWidth, countedHeight);
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         }
       } else {
         if (ratio.width > this.slider.offsetWidth) {
-          console.log(3);
           const countedWidth = this.slider.offsetWidth*widthToCount/heightToCount;
-          renderer.setSize(countedWidth, this.slider.offsetHeight );
+          this.renderer.setSize(countedWidth, this.slider.offsetHeight );
         } else {
-          console.log(4);
           const countedWidth = this.slider.offsetHeight*widthToCount/heightToCount;
-          renderer.setSize(countedWidth, this.slider.offsetHeight );
+          this.renderer.setSize(countedWidth, this.slider.offsetHeight );
         }
       }
     },
     onResize() {
-      console.log('resize!');
       this.setSize();
       const ratio = {
         width: this.textures[this.currentImage].image.width ? this.textures[this.currentImage].image.width : this.textures[this.currentImage].image.naturalWidth,
         height: this.textures[this.currentImage].image.height ? this.textures[this.currentImage].image.height : this.textures[this.currentImage].image.naturalHeight
       };
-      this.camera.aspect = renderer.domElement.width / renderer.domElement.height;
+      this.camera.aspect = this.renderer.domElement.width / this.renderer.domElement.height;
       this.camera.updateProjectionMatrix();
       this.mat.uniforms.resolution.value.set(ratio.width, ratio.height);
       this.mat.uniforms.sliderResolution.value.set(this.slider.offsetWidth, this.slider.offsetHeight);
