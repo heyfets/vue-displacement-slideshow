@@ -152,7 +152,7 @@ export default {
                 this.renderer.render(this.scene, this.camera);
     },
     renderVideo() {
-      renderer.render(scene, this.videoCamera);
+      this.renderer.render(scene, this.videoCamera);
     },
     transitionIn() {
       this.currentTransition = gsap.to(this.mat.uniforms.dispFactor, {
