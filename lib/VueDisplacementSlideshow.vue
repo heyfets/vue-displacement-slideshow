@@ -1,5 +1,5 @@
 <template>
-  <div class="vue-displacement-slideshow" ref="slider" :style="{ width: '100%', height: '100%' }"></div>
+  <div class="vue-displacement-slideshow" ref="slider" :style="{ width: '100%', height: '100%'}"></div>
 </template>
 
 <script>
@@ -21,6 +21,9 @@ import {gsap} from 'gsap';
 import {fragment, vertex} from "./shader.js";
 import {mod} from './utils.js';
 import * as THREE from "three";
+
+const scene = new Scene();
+const renderer = new WebGLRenderer({antialias: false, alpha: true});
 
 export default {
   name: "vue-displacement-slideshow",
@@ -88,8 +91,6 @@ export default {
   data() {
     return {
       currentImage: 0,
-                scene: new Scene(),
-                renderer: new WebGLRenderer({antialias: false, alpha: true}),
       mat: null,
       textures: [],
       disp: null,
@@ -134,22 +135,22 @@ export default {
           1000
       );
       camera.position.z = 1;
-      const canvas = renderer.domElement;
-      camera.aspect = 1920 / 1080;
-      camera.updateProjectionMatrix();
+      // const canvas = renderer.domElement;
+      // camera.aspect = 1920 / 1080;
+      // camera.updateProjectionMatrix();
       return camera;
     },
 
   },
   methods: {
     initScene() {
-                this.renderer.setPixelRatio(window.devicePixelRatio);
-                this.renderer.setClearColor(0xffffff, 0.0);
-                this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
-                this.$refs.slider.appendChild(this.renderer.domElement);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setClearColor(0xffffff, 0.0);
+      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+      this.$refs.slider.appendChild(renderer.domElement);
     },
     render() {
-                this.renderer.render(this.scene, this.camera);
+      renderer.render(scene, this.camera);
     },
     renderVideo() {
       renderer.render(scene, this.videoCamera);
@@ -222,6 +223,7 @@ export default {
 
       this.transitionOut();
       this.currentImage = this.nextImage;
+      this.setSize();
     },
     next(nextImage = null) {
       if (this.isAnimating) {
@@ -240,6 +242,7 @@ export default {
       this.mat.uniforms.texture2Alpha.value = this.textures[this.nextImage].alpha;
 
       this.transitionIn();
+      this.setSize();
     },
     loadTextures() {
       this.images.forEach((image, index) => {
@@ -308,7 +311,7 @@ export default {
       });
       const geometry = new PlaneBufferGeometry(this.slider.offsetWidth, this.slider.offsetHeight, 1);
       const object = new Mesh(geometry, this.mat);
-                this.scene.add(object);
+      scene.add(object);
     },
     init() {
       this.initScene();
@@ -317,16 +320,95 @@ export default {
         this.initShaderMaterial();
         this.loaded = true;
         this.$emit("loaded");
+        this.setSize();
         this.render();
       })
     },
-    onResize() {
+    setSize() {
+      let mediaElement = this.textures[this.currentImage].image;
+      const fileExtension = mediaElement.src.split('.').pop();
+      if (fileExtension === "mp4" || fileExtension === "webm") {
+        if (mediaElement.readyState > 1) {
+          mediaElement.width = mediaElement.videoWidth;
+          mediaElement.height = mediaElement.videoHeight;
+          this.setVideoSize(mediaElement);
+        } else {
+          mediaElement.addEventListener('loadedmetadata', (event) => {
+            let preloaded = event.path[0];
+            mediaElement.width = preloaded.videoWidth;
+            mediaElement.height = preloaded.videoHeight;
+            this.setVideoSize(mediaElement);
+          });
+        }
+      } else {
+        this.setImageSize();
+      }
+    },
+    setVideoSize(video) {
+      console.log(video.width);
+      console.log(video.height);
+      if (video.width > video.height) {
+        if (this.slider.offsetWidth > this.slider.offsetHeight) {
+          console.log(1);
+          const countedHeight = this.slider.offsetWidth*video.height/video.width;
+          renderer.setSize(this.slider.offsetWidth, countedHeight);
+        } else {
+          console.log(2);
+          const countedWidth = video.width*this.slider.offsetHeight/video.height;
+          renderer.setSize(countedWidth, this.slider.offsetHeight);
+        }
+      } else {
+        if (this.slider.offsetWidth > this.slider.offsetHeight) {
+          console.log(3);
+          const countedHeight = this.slider.offsetWidth*video.height/video.width;
+          renderer.setSize(this.slider.offsetWidth, countedHeight);
+        } else {
+          console.log(4);
+          const countedHeight = this.slider.offsetWidth*video.height/video.width;
+          renderer.setSize(this.slider.offsetWidth, countedHeight);
+        }
+      }
+    },
+    setImageSize() {
+      let image = this.textures[this.currentImage].image;
       const ratio = {
-        width: this.preserveAspectRatio ? this.slider.offsetWidth : this.textures[this.currentImage].image.naturalWidth,
-        height: this.preserveAspectRatio ? this.slider.offsetHeight : this.textures[this.currentImage].image.naturalHeight
+        width: image.width !== 0 ? image.width : image.naturalWidth,
+        height: image.height !== 0 ? image.height : image.naturalHeight
       };
-                this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
-      this.camera.aspect = this.slider.innerWidth / this.slider.innerHeight;
+
+      const widthToCount = ratio.width > this.slider.offsetWidth ? ratio.width : this.slider.offsetWidth;
+      const heightToCount = ratio.height > this.slider.offsetHeight ? ratio.height : this.slider.offsetHeight;
+
+      if (ratio.width > ratio.height) {
+        if (ratio.height > this.slider.offsetHeight) {
+          console.log(1);
+          const countedHeight = this.slider.offsetWidth*heightToCount/widthToCount;
+          renderer.setSize(this.slider.offsetWidth, countedHeight);
+        } else {
+          console.log(2);
+          const countedHeight = widthToCount*heightToCount/this.slider.offsetWidth;
+          renderer.setSize(this.slider.offsetWidth, countedHeight);
+        }
+      } else {
+        if (ratio.width > this.slider.offsetWidth) {
+          console.log(3);
+          const countedWidth = this.slider.offsetWidth*widthToCount/heightToCount;
+          renderer.setSize(countedWidth, this.slider.offsetHeight );
+        } else {
+          console.log(4);
+          const countedWidth = this.slider.offsetHeight*widthToCount/heightToCount;
+          renderer.setSize(countedWidth, this.slider.offsetHeight );
+        }
+      }
+    },
+    onResize() {
+      console.log('resize!');
+      this.setSize();
+      const ratio = {
+        width: this.textures[this.currentImage].image.width ? this.textures[this.currentImage].image.width : this.textures[this.currentImage].image.naturalWidth,
+        height: this.textures[this.currentImage].image.height ? this.textures[this.currentImage].image.height : this.textures[this.currentImage].image.naturalHeight
+      };
+      this.camera.aspect = renderer.domElement.width / renderer.domElement.height;
       this.camera.updateProjectionMatrix();
       this.mat.uniforms.resolution.value.set(ratio.width, ratio.height);
       this.mat.uniforms.sliderResolution.value.set(this.slider.offsetWidth, this.slider.offsetHeight);
@@ -342,35 +424,24 @@ export default {
         this.currentTransition.pause();
       }
     },
-    prepareVideo(videoTexture) {
-      console.log(videoTexture.image.videoWidth);
-      // this.cover(videoTexture, window.innerWidth / window.innerHeight)
-    },
     insertImage(path, index = this.textures.length) {
       const fileExtension = path.split('.').pop();
       if (fileExtension === "mp4" || fileExtension === "webm") {
         const video = document.createElement('video');
         video.src = path;
-        // video.width = window.innerWidth;
-        // video.height = window.innerHeight;
+        video.preload = 'metadata';
         video.muted = true;
         video.loop = true;
-        video.preload = 'metadata'
-        video.load();
         video.timelineSelector = false;
         video.playsinline = true;
         video.hideVideo = true;
+        video.load();
         const videoTexture = new VideoTexture(video);
         videoTexture.magFilter = LinearFilter;
         videoTexture.minFilter = LinearFilter;
         videoTexture.format = THREE.RGBFormat;
         videoTexture.alpha = 1;
         videoTexture.isVideo = 1;
-        // console.log(videoTexture.image.videoWidth);
-        // console.log(videoTexture.image[video.videoHeight]);
-        video.onloadedmetadata = async function(e){
-          this.videoAspect = video.videoWidth / video.videoHeight;
-        }
 
         return new Promise((resolve) => {
           this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
@@ -409,7 +480,6 @@ export default {
       // e.target.videoHeight, e.target.videoWeight
     },
     cover: function ( videoAspect, aspect, texture ) {
-      console.log(videoAspect);
       if ( aspect < videoAspect ) {
         texture.matrix.setUvTransform( 0, 0, aspect / videoAspect, 1, 0, 0.5, 0.5 );
       } else {
@@ -494,3 +564,10 @@ export default {
   },
 };
 </script>
+<style>
+.vue-displacement-slideshow {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+</style>
