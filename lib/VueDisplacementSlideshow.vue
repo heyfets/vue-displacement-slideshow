@@ -151,9 +151,6 @@ export default {
     render() {
         this.renderer.render(this.scene, this.camera);
     },
-    renderVideo() {
-      this.renderer.render(this.scene, this.videoCamera);
-    },
     transitionIn() {
       this.currentTransition = gsap.to(this.mat.uniforms.dispFactor, {
         duration: this.speedIn,
@@ -363,32 +360,7 @@ export default {
       }
     },
     setImageSize() {
-      let image = this.textures[this.currentImage].image;
-      const ratio = {
-        width: image.width !== 0 ? image.width : image.naturalWidth,
-        height: image.height !== 0 ? image.height : image.naturalHeight
-      };
-
-      const widthToCount = ratio.width > this.slider.offsetWidth ? ratio.width : this.slider.offsetWidth;
-      const heightToCount = ratio.height > this.slider.offsetHeight ? ratio.height : this.slider.offsetHeight;
-
-      if (ratio.width > ratio.height) {
-        if (ratio.height > this.slider.offsetHeight) {
-          const countedHeight = this.slider.offsetWidth*heightToCount/widthToCount;
-          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
-        } else {
-          const countedHeight = widthToCount*heightToCount/this.slider.offsetWidth;
-          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
-        }
-      } else {
-        if (ratio.width > this.slider.offsetWidth) {
-          const countedWidth = this.slider.offsetWidth*widthToCount/heightToCount;
-          this.renderer.setSize(countedWidth, this.slider.offsetHeight );
-        } else {
-          const countedWidth = this.slider.offsetHeight*widthToCount/heightToCount;
-          this.renderer.setSize(countedWidth, this.slider.offsetHeight );
-        }
-      }
+      this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
     },
     onResize() {
       this.setSize();
@@ -433,8 +405,8 @@ export default {
 
         return new Promise((resolve) => {
           this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
-          this.renderVideo();
           resolve();
+          this.render();
           this.textures.splice(index, 0, videoTexture);
 
           if (index <= this.currentImage && this.loaded) {
