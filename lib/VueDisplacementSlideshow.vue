@@ -346,16 +346,16 @@ export default {
           const countedWidth = video.width*this.slider.offsetHeight/video.height;
           this.renderer.setSize(countedWidth, this.slider.offsetHeight);
         } else {
-          const countedWidth = video.width*this.slider.offsetHeight/video.height;
-          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+          const countedHeight = this.slider.offsetWidth*video.height/video.width;
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         }
       } else {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          const countedWidth = video.width*this.slider.offsetHeight/video.height;
-          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+          const countedHeight = this.slider.offsetWidth*video.height/video.width;
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         } else {
-          const countedWidth = video.width*this.slider.offsetHeight/video.height;
-          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+          const countedHeight = this.slider.offsetWidth*video.height/video.width;
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         }
       }
     },
@@ -529,5 +529,6 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
 }
 </style>
