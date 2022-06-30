@@ -341,21 +341,27 @@ export default {
       }
     },
     setVideoSize(video) {
-      if (video.width > video.height) {
+      const countedWidth = video.width*this.slider.offsetHeight/video.height;
+      const countedHeight = this.slider.offsetWidth*video.height/video.width;
+      if (video.width >= video.height) {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          const countedWidth = video.width*this.slider.offsetHeight/video.height;
-          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+          if (this.slider.offsetHeight <= video.height) {
+            this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+          } else {
+            this.renderer.setSize(this.slider.offsetWidth, countedHeight);
+          }
         } else {
-          const countedHeight = this.slider.offsetWidth*video.height/video.width;
-          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
+          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
         }
       } else {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          const countedHeight = this.slider.offsetWidth*video.height/video.width;
           this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         } else {
-          const countedHeight = this.slider.offsetWidth*video.height/video.width;
-          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
+          if (this.slider.offsetWidth <= video.width) {
+            this.renderer.setSize(this.slider.offsetWidth, countedHeight );
+          } else {
+            this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+          }
         }
       }
     },
