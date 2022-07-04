@@ -22,6 +22,9 @@ import {fragment, vertex} from "./shader.js";
 import {mod} from './utils.js';
 import * as THREE from "three";
 
+const scene = new Scene();
+const renderer = new WebGLRenderer({antialias: false, alpha: true});
+
 export default {
   name: "vue-displacement-slideshow",
   props: {
@@ -88,8 +91,6 @@ export default {
   data() {
     return {
       currentImage: 0,
-      scene: new Scene(),
-      renderer: new WebGLRenderer({antialias: false, alpha: true}),
       mat: null,
       textures: [],
       disp: null,
@@ -143,13 +144,13 @@ export default {
   },
   methods: {
     initScene() {
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setClearColor(0xffffff, 0.0);
-        this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
-        this.$refs.slider.appendChild(this.renderer.domElement);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setClearColor(0xffffff, 0.0);
+      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+      this.$refs.slider.appendChild(renderer.domElement);
     },
     render() {
-        this.renderer.render(this.scene, this.camera);
+      renderer.render(scene, this.camera);
     },
     transitionIn() {
       this.currentTransition = gsap.to(this.mat.uniforms.dispFactor, {
@@ -237,8 +238,8 @@ export default {
       this.mat.uniforms.texture1Alpha.value = this.textures[this.currentImage].alpha;
       this.mat.uniforms.texture2Alpha.value = this.textures[this.nextImage].alpha;
 
-      this.transitionIn();
       this.setSize();
+      this.transitionIn();
     },
     loadTextures() {
       this.images.forEach((image, index) => {
@@ -307,7 +308,7 @@ export default {
       });
       const geometry = new PlaneBufferGeometry(this.slider.offsetWidth, this.slider.offsetHeight, 1);
       const object = new Mesh(geometry, this.mat);
-                this.scene.add(object);
+      scene.add(object);
     },
     init() {
       this.initScene();
@@ -342,31 +343,34 @@ export default {
     },
     setVideoSize(video) {
       const countedWidth = video.width*this.slider.offsetHeight/video.height;
-      const countedHeight = this.slider.offsetWidth*video.height/video.width;
+      const countedHeight = video.height*this.slider.offsetWidth/video.width;
+      const videoRatio = video.width/video.height;
+      const offsetRatio = this.slider.offsetWidth/this.slider.offsetHeight;
+
       if (video.width >= video.height) {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          if (this.slider.offsetHeight <= video.height) {
-            this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+          if (videoRatio <=offsetRatio) {
+            renderer.setSize(this.slider.offsetWidth, countedHeight);
           } else {
-            this.renderer.setSize(this.slider.offsetWidth, countedHeight);
+            renderer.setSize(countedWidth, this.slider.offsetHeight);
           }
         } else {
-          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+          renderer.setSize(countedWidth, this.slider.offsetHeight);
         }
       } else {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
+          renderer.setSize(this.slider.offsetWidth, countedHeight );
         } else {
-          if (this.slider.offsetWidth <= video.width) {
-            this.renderer.setSize(this.slider.offsetWidth, countedHeight );
+          if (videoRatio >=offsetRatio) {
+            renderer.setSize(countedWidth, this.slider.offsetHeight);
           } else {
-            this.renderer.setSize(countedWidth, this.slider.offsetHeight);
+            renderer.setSize(this.slider.offsetWidth, countedHeight );
           }
         }
       }
     },
     setImageSize() {
-      this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
     },
     onResize() {
       this.setSize();
@@ -374,7 +378,7 @@ export default {
         width: this.textures[this.currentImage].image.width ? this.textures[this.currentImage].image.width : this.textures[this.currentImage].image.naturalWidth,
         height: this.textures[this.currentImage].image.height ? this.textures[this.currentImage].image.height : this.textures[this.currentImage].image.naturalHeight
       };
-      this.camera.aspect = this.renderer.domElement.width / this.renderer.domElement.height;
+      this.camera.aspect = renderer.domElement.width / renderer.domElement.height;
       this.camera.updateProjectionMatrix();
       this.mat.uniforms.resolution.value.set(ratio.width, ratio.height);
       this.mat.uniforms.sliderResolution.value.set(this.slider.offsetWidth, this.slider.offsetHeight);
@@ -400,7 +404,7 @@ export default {
         video.loop = true;
         video.timelineSelector = false;
         video.playsinline = true;
-        video.hideVideo = true;
+        video.autoplay = false;
         video.load();
         const videoTexture = new VideoTexture(video);
         videoTexture.magFilter = LinearFilter;
