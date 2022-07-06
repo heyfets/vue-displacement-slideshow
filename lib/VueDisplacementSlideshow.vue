@@ -402,17 +402,18 @@ export default {
         video.preload = 'metadata';
         video.muted = true;
         video.loop = true;
+        video.load();
         video.timelineSelector = false;
         video.playsinline = true;
         video.autoplay = false;
-        video.load();
+        video.setAttribute('webkit-playsinline', 'webkit-playsinline');
+        video.setAttribute('playsinline', 'playsinline');
         const videoTexture = new VideoTexture(video);
         videoTexture.magFilter = LinearFilter;
         videoTexture.minFilter = LinearFilter;
         videoTexture.format = THREE.RGBFormat;
         videoTexture.alpha = 1;
         videoTexture.isVideo = 1;
-
         return new Promise((resolve) => {
           this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
           resolve();
