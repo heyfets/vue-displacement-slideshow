@@ -244,7 +244,7 @@ export default {
     loadTextures() {
       this.images.forEach((image, index) => {
         let textureLoaded = this.insertImage(image, index);
-        this.imagesLoaded.push(textureLoaded)
+        Promise.all(textureLoaded).then(this.imagesLoaded.push(textureLoaded));
       });
 
       if (this.startAsTransparent) {
@@ -416,7 +416,6 @@ export default {
         videoTexture.isVideo = 1;
         return new Promise((resolve) => {
           this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
-          resolve();
           this.render();
           this.textures.splice(index, 0, videoTexture);
 
@@ -424,6 +423,7 @@ export default {
             //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
             this.currentImage++;
           }
+          resolve();
         });
       }
       if (fileExtension === "jpg" || fileExtension === "png" || fileExtension === "gif") {
