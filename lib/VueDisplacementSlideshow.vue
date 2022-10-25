@@ -323,30 +323,45 @@ export default {
     },
     setSize() {
       let mediaElement = this.textures[this.currentImage].image;
-      const fileExtension = mediaElement.src.split('.').pop();
-      if (fileExtension === "mp4" || fileExtension === "webm") {
-        if (mediaElement.readyState > 1) {
-          mediaElement.width = mediaElement.videoWidth;
-          mediaElement.height = mediaElement.videoHeight;
-          this.setVideoSize(mediaElement);
+      if (mediaElement.vimeo.length) {
+        if (window.innerWidth > window.innerHeight) {
+          const matchedVideo = this.setMatchedVideo(mediaElement, 'landscape');
+          mediaElement.src = matchedVideo.link;
+          mediaElement.image.width = matchedVideo.width;
+          mediaElement.image.height = matchedVideo.height;
         } else {
-          mediaElement.addEventListener('loadedmetadata', (event) => {
-            let preloaded = event.path[0];
-            mediaElement.width = preloaded.videoWidth;
-            mediaElement.height = preloaded.videoHeight;
-            this.setVideoSize(mediaElement);
-          });
+          const matchedVideo = this.setMatchedVideo(mediaElement, 'portrait');
+          mediaElement.src = matchedVideo.link;
+          mediaElement.image.width = matchedVideo.width;
+          mediaElement.image.height = matchedVideo.height;
         }
+        this.setVideoSize();
       } else {
-        this.setImageSize();
+        const fileExtension = mediaElement.src.split('.').pop();
+        if (fileExtension === "mp4" || fileExtension === "webm") {
+          if (mediaElement.readyState > 1) {
+            mediaElement.width = mediaElement.videoWidth;
+            mediaElement.height = mediaElement.videoHeight;
+            this.setVideoSize();
+          } else {
+            mediaElement.addEventListener('loadedmetadata', (event) => {
+              let preloaded = event.path[0];
+              mediaElement.width = preloaded.videoWidth;
+              mediaElement.height = preloaded.videoHeight;
+              this.setVideoSize();
+            });
+          }
+        } else {
+          this.setImageSize();
+        }
       }
     },
-    setVideoSize(video) {
+    setVideoSize() {
+      let video = this.textures[this.currentImage].image;
       const countedWidth = video.width*this.slider.offsetHeight/video.height;
       const countedHeight = video.height*this.slider.offsetWidth/video.width;
       const videoRatio = video.width/video.height;
       const offsetRatio = this.slider.offsetWidth/this.slider.offsetHeight;
-
       if (video.width >= video.height) {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
           if (videoRatio <=offsetRatio) {
@@ -372,6 +387,37 @@ export default {
     setImageSize() {
       renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
     },
+    setMatchedVideo(videos, orientation = 'landscape') {
+      let videoRendition;
+      switch (true) {
+        case (window.innerWidth <= 480):
+          videoRendition = '360p';
+          break;
+        case (window.innerWidth <= 840):
+          videoRendition = '540p';
+          break;
+        case (window.innerWidth <= 1280):
+          videoRendition = '720p';
+          break;
+        case (window.innerWidth <= 1920):
+          videoRendition = '1080p';
+          break;
+        case (window.innerWidth <= 2560):
+          videoRendition = '1440p';
+          break;
+        case (window.innerWidth <= 3840):
+          videoRendition = '2160p';
+          break;
+        default:
+          videoRendition = '1080p';
+          break
+      }
+      for (let i=0; i < videos[orientation].length ; ++i) {
+        if (videos[orientation][i].rendition === videoRendition) {
+          return videos[orientation][i];
+        }
+      }
+    },
     onResize() {
       this.setSize();
       const ratio = {
@@ -395,56 +441,76 @@ export default {
       }
     },
     insertImage(path, index = this.textures.length) {
-      const fileExtension = path.split('.').pop();
-      if (fileExtension === "mp4" || fileExtension === "webm") {
+      if (path.vimeo.length) {
         const video = document.createElement('video');
-        video.src = path;
-        video.preload = 'metadata';
-        video.muted = true;
-        video.loop = true;
-        video.load();
-        video.timelineSelector = false;
-        video.playsinline = true;
-        video.autoplay = false;
-        video.setAttribute('webkit-playsinline', 'webkit-playsinline');
-        video.setAttribute('playsinline', 'playsinline');
-        const videoTexture = new VideoTexture(video);
-        videoTexture.magFilter = LinearFilter;
-        videoTexture.minFilter = LinearFilter;
-        videoTexture.format = THREE.RGBFormat;
-        videoTexture.alpha = 1;
-        videoTexture.isVideo = 1;
-        return new Promise((resolve) => {
-          this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
-          this.render();
-          this.textures.splice(index, 0, videoTexture);
+        this.textures[this.currentImage].vimeo = path;
+        if (window.innerWidth > window.innerHeight) {
+          let mediaElement = this.setMatchedVideo(path);
+          video.src = mediaElement.link;
+          video.width = mediaElement.width;
+          video.height = mediaElement.height;
+        } else {
+          let mediaElement = this.setMatchedVideo(path, 'portrait');
+          video.src = mediaElement.link;
+          video.width = mediaElement.width;
+          video.height = mediaElement.height;
+        }
+        this.insertVideo(video);
+      } else {
+        const video = document.createElement('video');
+        const fileExtension = path.split('.').pop();
+        if (fileExtension === "mp4" || fileExtension === "webm") {
+          video.src = path;
+          this.insertVideo(video);
+        }
+        if (fileExtension === "jpg" || fileExtension === "webp" || fileExtension === "png" || fileExtension === "gif") {
+          const loader = new TextureLoader();
+          loader.crossOrigin = '';
+          return new Promise((resolve) => {
+            let texture = loader.load(path, () => {
+              this.render();
+              resolve();
+            });
+            texture.magFilter = LinearFilter;
+            texture.minFilter = LinearFilter;
+            texture.alpha = 1;
+            this.textures.splice(index, 0, texture);
 
-          if (index <= this.currentImage && this.loaded) {
-            //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
-            this.currentImage++;
-          }
-          resolve();
-        });
-      }
-      if (fileExtension === "jpg" || fileExtension === "png" || fileExtension === "gif") {
-        const loader = new TextureLoader();
-        loader.crossOrigin = '';
-        return new Promise((resolve) => {
-          let texture = loader.load(path, () => {
-            this.render();
-            resolve();
+            if (index <= this.currentImage && this.loaded) {
+              //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
+              this.currentImage++;
+            }
           });
-          texture.magFilter = LinearFilter;
-          texture.minFilter = LinearFilter;
-          texture.alpha = 1;
-          this.textures.splice(index, 0, texture);
-
-          if (index <= this.currentImage && this.loaded) {
-            //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
-            this.currentImage++;
-          }
-        });
+        }
       }
+    },
+    insertVideo(video) {
+      video.preload = 'metadata';
+      video.muted = true;
+      video.loop = true;
+      video.load();
+      video.timelineSelector = false;
+      video.playsinline = true;
+      video.autoplay = false;
+      video.setAttribute('webkit-playsinline', 'webkit-playsinline');
+      video.setAttribute('playsinline', 'playsinline');
+      const videoTexture = new VideoTexture(video);
+      videoTexture.magFilter = LinearFilter;
+      videoTexture.minFilter = LinearFilter;
+      videoTexture.format = THREE.RGBFormat;
+      videoTexture.alpha = 1;
+      videoTexture.isVideo = 1;
+      return new Promise((resolve) => {
+        this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
+        this.render();
+        this.textures.splice(index, 0, videoTexture);
+
+        if (index <= this.currentImage && this.loaded) {
+          //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
+          this.currentImage++;
+        }
+        resolve();
+      });
     },
     getVideoDimensions (e) {
       console.log(e);
