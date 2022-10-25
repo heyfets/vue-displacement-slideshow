@@ -441,7 +441,7 @@ export default {
       }
     },
     insertImage(path, index = this.textures.length) {
-      if (path.vimeo.length) {
+      if (path[vimeo].length) {
         const video = document.createElement('video');
         this.textures[this.currentImage].vimeo = path;
         if (window.innerWidth > window.innerHeight) {
