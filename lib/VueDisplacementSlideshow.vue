@@ -21,6 +21,7 @@ import {gsap} from 'gsap';
 import {fragment, vertex} from "./shader.js";
 import {mod} from './utils.js';
 import * as THREE from "three";
+import _ from "lodash";
 
 const scene = new Scene();
 const renderer = new WebGLRenderer({antialias: false, alpha: true});
@@ -103,7 +104,9 @@ export default {
       rafID: null,
       mouseSpeed: {value: 0},
       loaded: false,
-      videoAspect: false
+      videoAspect: false,
+      firstLoading: false,
+      screenOrientation: false
     }
   },
   computed: {
@@ -237,14 +240,13 @@ export default {
 
       this.mat.uniforms.texture1Alpha.value = this.textures[this.currentImage].alpha;
       this.mat.uniforms.texture2Alpha.value = this.textures[this.nextImage].alpha;
-
       this.setSize();
       this.transitionIn();
     },
     loadTextures() {
       this.images.forEach((image, index) => {
         let textureLoaded = this.insertImage(image, index);
-        Promise.all(textureLoaded).then(this.imagesLoaded.push(textureLoaded));
+        this.imagesLoaded.push(textureLoaded)
       });
 
       if (this.startAsTransparent) {
@@ -252,8 +254,9 @@ export default {
       }
 
       const loader = new TextureLoader();
-      loader.crossOrigin = '';
       this.disp = loader.load(this.displacement, this.render);
+      this.disp.crossOrigin = "anonymous";
+      this.disp.crossDomain = "*";
       this.disp.wrapS = RepeatWrapping;
       this.disp.wrapT = RepeatWrapping;
     },
@@ -317,23 +320,22 @@ export default {
         this.initShaderMaterial();
         this.loaded = true;
         this.$emit("loaded");
-        this.setSize();
+        this.firstLoading = 1;
+        this.setSize(true);
         this.render();
       })
     },
-    setSize() {
-      let mediaElement = this.textures[this.currentImage].image;
-      if (mediaElement.vimeo.length) {
-        if (window.innerWidth > window.innerHeight) {
-          const matchedVideo = this.setMatchedVideo(mediaElement, 'landscape');
-          mediaElement.src = matchedVideo.link;
+    setSize(orientationChanged = false) {
+      let mediaElement = this.textures[this.currentImage];
+      mediaElement.image.crossOrigin = "anonymous";
+      if (!_.isNull(mediaElement.textureContent) && !_.isNull(mediaElement.textureContent.vimeo)) {
+        if (orientationChanged === true) {
+          let currentTime = mediaElement.image.currentTime;
+          const matchedVideo = this.setMatchedVideo(mediaElement.textureContent.vimeo, this.screenOrientation);
+          mediaElement.image.src = matchedVideo.link;
           mediaElement.image.width = matchedVideo.width;
           mediaElement.image.height = matchedVideo.height;
-        } else {
-          const matchedVideo = this.setMatchedVideo(mediaElement, 'portrait');
-          mediaElement.src = matchedVideo.link;
-          mediaElement.image.width = matchedVideo.width;
-          mediaElement.image.height = matchedVideo.height;
+          mediaElement.image.currentTime = currentTime;
         }
         this.setVideoSize();
       } else {
@@ -410,16 +412,34 @@ export default {
           break;
         default:
           videoRendition = '1080p';
-          break
+          break;
       }
-      for (let i=0; i < videos[orientation].length ; ++i) {
+      if (_.isNull(videos[orientation]) || typeof videos[orientation] == "undefined") {
+        orientation = 'landscape';
+      }
+      for (let i=0; i < Object.keys(videos[orientation]).length ; ++i) {
         if (videos[orientation][i].rendition === videoRendition) {
           return videos[orientation][i];
         }
       }
     },
+    isOrientationChanged() {
+      let currentOrientation = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
+      if (currentOrientation !== this.screenOrientation) {
+        this.screenOrientation = currentOrientation;
+        return true;
+      }
+      if (this.textures[this.currentImage].image.width < window.innerWidth + 200) {
+        return true;
+      }
+      return false;
+    },
+    setScreenOrientation() {
+      this.screenOrientation = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
+    },
     onResize() {
-      this.setSize();
+      this.textures[this.currentImage].image.pause();
+      this.setSize(this.isOrientationChanged());
       const ratio = {
         width: this.textures[this.currentImage].image.width ? this.textures[this.currentImage].image.width : this.textures[this.currentImage].image.naturalWidth,
         height: this.textures[this.currentImage].image.height ? this.textures[this.currentImage].image.height : this.textures[this.currentImage].image.naturalHeight
@@ -429,6 +449,7 @@ export default {
       this.mat.uniforms.resolution.value.set(ratio.width, ratio.height);
       this.mat.uniforms.sliderResolution.value.set(this.slider.offsetWidth, this.slider.offsetHeight);
       this.render();
+      this.textures[this.currentImage].image.play();
     },
     play() {
       if (this.currentTransition) {
@@ -441,27 +462,27 @@ export default {
       }
     },
     insertImage(path, index = this.textures.length) {
-      if (path[vimeo].length) {
+      if (typeof path === 'object') {
         const video = document.createElement('video');
-        this.textures[this.currentImage].vimeo = path;
+        video.crossOrigin="anonymous";
         if (window.innerWidth > window.innerHeight) {
-          let mediaElement = this.setMatchedVideo(path);
+          let mediaElement = this.setMatchedVideo(path.vimeo);
           video.src = mediaElement.link;
           video.width = mediaElement.width;
           video.height = mediaElement.height;
         } else {
-          let mediaElement = this.setMatchedVideo(path, 'portrait');
+          let mediaElement = this.setMatchedVideo(path.vimeo, 'portrait');
           video.src = mediaElement.link;
           video.width = mediaElement.width;
           video.height = mediaElement.height;
         }
-        this.insertVideo(video);
+        this.insertVideo(video, index, path);
       } else {
         const video = document.createElement('video');
         const fileExtension = path.split('.').pop();
         if (fileExtension === "mp4" || fileExtension === "webm") {
           video.src = path;
-          this.insertVideo(video);
+          this.insertVideo(video, index);
         }
         if (fileExtension === "jpg" || fileExtension === "webp" || fileExtension === "png" || fileExtension === "gif") {
           const loader = new TextureLoader();
@@ -474,6 +495,7 @@ export default {
             texture.magFilter = LinearFilter;
             texture.minFilter = LinearFilter;
             texture.alpha = 1;
+            texure.textureContent = null;
             this.textures.splice(index, 0, texture);
 
             if (index <= this.currentImage && this.loaded) {
@@ -484,11 +506,10 @@ export default {
         }
       }
     },
-    insertVideo(video) {
+    insertVideo(video, index, textureContent = null) {
       video.preload = 'metadata';
       video.muted = true;
       video.loop = true;
-      video.load();
       video.timelineSelector = false;
       video.playsinline = true;
       video.autoplay = false;
@@ -500,6 +521,9 @@ export default {
       videoTexture.format = THREE.RGBFormat;
       videoTexture.alpha = 1;
       videoTexture.isVideo = 1;
+      videoTexture.textureContent = textureContent;
+
+
       return new Promise((resolve) => {
         this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
         this.render();
@@ -590,6 +614,7 @@ export default {
   },
   mounted() {
     this.init();
+    this.setScreenOrientation();
     window.addEventListener('resize', this.onResize);
     window.addEventListener('mousemove', this.onMouseMove);
     this.animate();
