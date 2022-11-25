@@ -332,6 +332,7 @@ export default {
         if (orientationChanged === true) {
           let currentTime = mediaElement.image.currentTime;
           const matchedVideo = this.setMatchedVideo(mediaElement.textureContent.vimeo, this.screenOrientation);
+          // this.getMediaURLForTrack(mediaElement.image, mediaElement.link);
           mediaElement.image.src = matchedVideo.link;
           mediaElement.image.width = matchedVideo.width;
           mediaElement.image.height = matchedVideo.height;
@@ -461,13 +462,18 @@ export default {
         this.currentTransition.pause();
       }
     },
+    async getMediaURLForTrack (video, passed_url) {
+      await fetch(passed_url, { method: 'HEAD' }
+      ).then((response) => { video.src = response.url });
+    },
     insertImage(path, index = this.textures.length) {
       if (typeof path === 'object') {
         const video = document.createElement('video');
         video.crossOrigin="anonymous";
         if (window.innerWidth > window.innerHeight) {
           let mediaElement = this.setMatchedVideo(path.vimeo);
-          video.src = mediaElement.link;
+          // video.src = mediaElement.link;
+          this.getMediaURLForTrack(video, mediaElement.link);
           video.width = mediaElement.width;
           video.height = mediaElement.height;
         } else {
@@ -507,14 +513,17 @@ export default {
       }
     },
     insertVideo(video, index, textureContent = null) {
-      video.preload = 'metadata';
+      video.preload = 'auto';
       video.muted = true;
+      video.setAttribute('muted', '');
+      video.disableremoteplayback = false;
+      video.defaultMuted = true;
+      video.playsinline = true;
       video.loop = true;
       video.timelineSelector = false;
-      video.playsinline = true;
       video.autoplay = false;
-      video.setAttribute('webkit-playsinline', 'webkit-playsinline');
-      video.setAttribute('playsinline', 'playsinline');
+      // video.setAttribute('webkit-playsinline', 'webkit-playsinline');
+      // video.setAttribute('playsinline', 'playsinline');
       const videoTexture = new VideoTexture(video);
       videoTexture.magFilter = LinearFilter;
       videoTexture.minFilter = LinearFilter;
@@ -522,8 +531,6 @@ export default {
       videoTexture.alpha = 1;
       videoTexture.isVideo = 1;
       videoTexture.textureContent = textureContent;
-
-
       return new Promise((resolve) => {
         this.cover(this.videoAspect, window.innerWidth / window.innerHeight, videoTexture);
         this.render();
