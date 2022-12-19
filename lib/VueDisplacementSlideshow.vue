@@ -237,13 +237,15 @@ export default {
         return;
       }
       this.isAnimating = true;
+      this.mat.uniforms.dispFactor.value = 1;
       this.nextImage = nextImage !== null ? nextImage : mod((this.currentImage + 1), (this.textures.length));
       this.assignTexturesToMaterial();
 
       this.mat.uniforms.texture1Alpha.value = this.textures[this.currentImage].alpha;
       this.mat.uniforms.texture2Alpha.value = this.textures[this.nextImage].alpha;
-      this.setSize();
       this.transitionIn();
+      this.currentImage = this.nextImage;
+      this.setSize();
     },
     loadTextures() {
       this.images.forEach((image, index) => {
