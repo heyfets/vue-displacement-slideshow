@@ -31,9 +31,6 @@ var config = {
     externals: {
         vue: 'vue'
     },
-    plugins: [
-        new MinifyPlugin()
-    ]
 };
 
 
