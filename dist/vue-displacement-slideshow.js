@@ -11032,7 +11032,7 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
       let videoRendition;
       switch (true) {
         case window.innerWidth <= 480:
-          videoRendition = '360p';
+          videoRendition = '540p';
           break;
         case window.innerWidth <= 840:
           videoRendition = '540p';

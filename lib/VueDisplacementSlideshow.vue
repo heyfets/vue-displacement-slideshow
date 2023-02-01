@@ -408,7 +408,7 @@ export default {
     setMatchedVideo(videos, orientation = 'landscape') {
       let videoRendition;
       switch (true) {
-        case (window.innerWidth <= 480):
+        case (window.innerWidth <= 360):
           videoRendition = '360p';
           break;
         case (window.innerWidth <= 840):
