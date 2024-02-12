@@ -11031,8 +11031,8 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
     setMatchedVideo(videos, orientation = 'landscape') {
       let videoRendition;
       switch (true) {
-        case window.innerWidth <= 480:
-          videoRendition = '540p';
+        case window.innerWidth <= 360:
+          videoRendition = '360p';
           break;
         case window.innerWidth <= 840:
           videoRendition = '540p';
@@ -11137,7 +11137,7 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
             texture.magFilter = __WEBPACK_IMPORTED_MODULE_5_three_src_constants_js__["O" /* LinearFilter */];
             texture.minFilter = __WEBPACK_IMPORTED_MODULE_5_three_src_constants_js__["O" /* LinearFilter */];
             texture.alpha = 1;
-            texure.textureContent = null;
+            texture.textureContent = null;
             this.textures.splice(index, 0, texture);
 
             if (index <= this.currentImage && this.loaded) {

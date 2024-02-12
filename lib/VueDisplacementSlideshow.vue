@@ -515,7 +515,7 @@ export default {
             texture.magFilter = LinearFilter;
             texture.minFilter = LinearFilter;
             texture.alpha = 1;
-            texure.textureContent = null;
+            texture.textureContent = null;
             this.textures.splice(index, 0, texture);
 
             if (index <= this.currentImage && this.loaded) {
