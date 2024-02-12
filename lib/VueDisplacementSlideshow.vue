@@ -344,7 +344,7 @@ export default {
         }
         this.setVideoSize();
       } else {
-        const fileExtension = mediaElement.src.split('.').pop();
+        const fileExtension = mediaElement.image.src.split('.').pop();
         if (fileExtension === "mp4" || fileExtension === "webm") {
           if (mediaElement.readyState > 1) {
             mediaElement.width = mediaElement.videoWidth;
