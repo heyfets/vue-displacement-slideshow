@@ -344,6 +344,10 @@ export default {
         }
         this.setVideoSize();
       } else {
+        if (mediaElement === 'blank-texture') {
+          this.setImageSize();
+          return;
+        }
         const fileExtension = mediaElement.image.src.split('.').pop();
         if (fileExtension === "mp4" || fileExtension === "webm") {
           if (mediaElement.readyState > 1) {
