@@ -498,6 +498,31 @@ export default {
         this.tVideo[index] = video;
         this.getMediaURLForTrack(mediaElement.link, this.insertVideo(index, path), index);
       } else {
+        if (path === 'blank-texture') {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1;
+          canvas.height = 1;
+
+          const context = canvas.getContext('2d');
+          context.fillStyle = 'rgba(0,0,0,0)';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+
+          return new Promise((resolve) => {
+            let texture = new THREE.Texture(canvas);
+            this.render();
+            resolve();
+            texture.magFilter = LinearFilter;
+            texture.minFilter = LinearFilter;
+            texture.alpha = 1;
+            texture.textureContent = null;
+            this.textures.splice(index, 0, texture);
+
+            if (index <= this.currentImage && this.loaded) {
+              //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
+              this.currentImage++;
+            }
+          });
+        }
         const video = document.createElement('video');
         const fileExtension = path.split('.').pop();
         if (fileExtension === "mp4" || fileExtension === "webm") {

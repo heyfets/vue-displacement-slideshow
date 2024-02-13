@@ -11120,6 +11120,31 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
         this.tVideo[index] = video;
         this.getMediaURLForTrack(mediaElement.link, this.insertVideo(index, path), index);
       } else {
+        if (path === 'blank-texture') {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1;
+          canvas.height = 1;
+
+          const context = canvas.getContext('2d');
+          context.fillStyle = 'rgba(0,0,0,0)';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+
+          return new Promise(resolve => {
+            let texture = new __WEBPACK_IMPORTED_MODULE_14_three__["b" /* Texture */](canvas);
+            this.render();
+            resolve();
+            texture.magFilter = __WEBPACK_IMPORTED_MODULE_5_three_src_constants_js__["O" /* LinearFilter */];
+            texture.minFilter = __WEBPACK_IMPORTED_MODULE_5_three_src_constants_js__["O" /* LinearFilter */];
+            texture.alpha = 1;
+            texture.textureContent = null;
+            this.textures.splice(index, 0, texture);
+
+            if (index <= this.currentImage && this.loaded) {
+              //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
+              this.currentImage++;
+            }
+          });
+        }
         const video = document.createElement('video');
         const fileExtension = path.split('.').pop();
         if (fileExtension === "mp4" || fileExtension === "webm") {
@@ -41000,7 +41025,7 @@ function mod(x, y) {
 /* unused harmony export TetrahedronGeometry */
 /* unused harmony export TextBufferGeometry */
 /* unused harmony export TextGeometry */
-/* unused harmony export Texture */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return Texture; });
 /* unused harmony export TextureLoader */
 /* unused harmony export TorusBufferGeometry */
 /* unused harmony export TorusGeometry */
