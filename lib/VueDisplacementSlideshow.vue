@@ -310,7 +310,7 @@ export default {
         },
         vertexShader: vertex,
         fragmentShader: fragment,
-        transparent: true,
+        transparent: false,
         opacity: 1.0
       });
       const geometry = new PlaneBufferGeometry(this.slider.offsetWidth, this.slider.offsetHeight, 1);
@@ -344,7 +344,7 @@ export default {
         }
         this.setVideoSize();
       } else {
-        if (mediaElement === 'blank-texture') {
+        if (mediaElement.image && mediaElement.image instanceof HTMLCanvasElement) {
           this.setImageSize();
           return;
         }
@@ -458,11 +458,15 @@ export default {
       this.screenOrientation = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
     },
     onResize() {
-      this.textures[this.currentImage].image.pause();
-      this.setSize(this.isOrientationChanged());
-      if (this.blockVideoRender === false) {
-        this.setFinalVideoSize();
-        this.textures[this.currentImage].image.play();
+      if (this.textures[this.currentImage].image instanceof HTMLVideoElement) {
+        this.textures[this.currentImage].image.pause();
+        this.setSize(this.isOrientationChanged());
+        if (this.blockVideoRender === false) {
+          this.setFinalVideoSize();
+          this.textures[this.currentImage].image.play();
+        }
+      } else {
+        this.setSize(this.isOrientationChanged());
       }
     },
     play() {
@@ -508,17 +512,18 @@ export default {
           canvas.height = 1;
 
           const context = canvas.getContext('2d');
-          context.fillStyle = 'rgba(0,0,0,0)';
+          context.fillStyle = 'rgba(255,255,255,1)'; // Прозрачно-белый
           context.fillRect(0, 0, canvas.width, canvas.height);
 
           return new Promise((resolve) => {
-            let texture = new THREE.Texture(canvas);
+            let texture = new Texture(canvas);
             this.render();
             resolve();
             texture.magFilter = LinearFilter;
             texture.minFilter = LinearFilter;
             texture.alpha = 1;
             texture.textureContent = null;
+            texture.needsUpdate = true;
             this.textures.splice(index, 0, texture);
 
             if (index <= this.currentImage && this.loaded) {

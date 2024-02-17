@@ -10933,7 +10933,7 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
         },
         vertexShader: __WEBPACK_IMPORTED_MODULE_12__shader_js__["b" /* vertex */],
         fragmentShader: __WEBPACK_IMPORTED_MODULE_12__shader_js__["a" /* fragment */],
-        transparent: true,
+        transparent: false,
         opacity: 1.0
       });
       const geometry = new __WEBPACK_IMPORTED_MODULE_7_three_src_geometries_PlaneGeometry_js__["a" /* PlaneBufferGeometry */](this.slider.offsetWidth, this.slider.offsetHeight, 1);
@@ -10967,7 +10967,7 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
         }
         this.setVideoSize();
       } else {
-        if (mediaElement === 'blank-texture') {
+        if (mediaElement.image && mediaElement.image instanceof HTMLCanvasElement) {
           this.setImageSize();
           return;
         }
@@ -11081,11 +11081,15 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
       this.screenOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
     },
     onResize() {
-      this.textures[this.currentImage].image.pause();
-      this.setSize(this.isOrientationChanged());
-      if (this.blockVideoRender === false) {
-        this.setFinalVideoSize();
-        this.textures[this.currentImage].image.play();
+      if (this.textures[this.currentImage].image instanceof HTMLVideoElement) {
+        this.textures[this.currentImage].image.pause();
+        this.setSize(this.isOrientationChanged());
+        if (this.blockVideoRender === false) {
+          this.setFinalVideoSize();
+          this.textures[this.currentImage].image.play();
+        }
+      } else {
+        this.setSize(this.isOrientationChanged());
       }
     },
     play() {
@@ -11130,17 +11134,18 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
           canvas.height = 1;
 
           const context = canvas.getContext('2d');
-          context.fillStyle = 'rgba(0,0,0,0)';
+          context.fillStyle = 'rgba(255,255,255,1)'; // Прозрачно-белый
           context.fillRect(0, 0, canvas.width, canvas.height);
 
           return new Promise(resolve => {
-            let texture = new __WEBPACK_IMPORTED_MODULE_14_three__["b" /* Texture */](canvas);
+            let texture = new __WEBPACK_IMPORTED_MODULE_9_three_src_textures_Texture_js__["a" /* Texture */](canvas);
             this.render();
             resolve();
             texture.magFilter = __WEBPACK_IMPORTED_MODULE_5_three_src_constants_js__["O" /* LinearFilter */];
             texture.minFilter = __WEBPACK_IMPORTED_MODULE_5_three_src_constants_js__["O" /* LinearFilter */];
             texture.alpha = 1;
             texture.textureContent = null;
+            texture.needsUpdate = true;
             this.textures.splice(index, 0, texture);
 
             if (index <= this.currentImage && this.loaded) {
@@ -11259,7 +11264,6 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
           x: e.clientX - sliderPosition.left,
           y: e.clientY - sliderPosition.top
         };
-        this.mat.uniforms.u_rgbPosition.value = new __WEBPACK_IMPORTED_MODULE_10_three_src_math_Vector2_js__["a" /* Vector2 */](this.mousePosition.x, this.mousePosition.y);
       }
     },
     getMouseSpeed() {
@@ -41029,7 +41033,7 @@ function mod(x, y) {
 /* unused harmony export TetrahedronGeometry */
 /* unused harmony export TextBufferGeometry */
 /* unused harmony export TextGeometry */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return Texture; });
+/* unused harmony export Texture */
 /* unused harmony export TextureLoader */
 /* unused harmony export TorusBufferGeometry */
 /* unused harmony export TorusGeometry */
