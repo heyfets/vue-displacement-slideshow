@@ -345,7 +345,8 @@ export default {
         this.setVideoSize();
       } else {
         if (mediaElement.image && mediaElement.image instanceof HTMLCanvasElement) {
-          this.setImageSize();
+          this.setVideoSize();
+          this.setFinalVideoSize();
           return;
         }
         const fileExtension = mediaElement.image.src.split('.').pop();
@@ -363,7 +364,8 @@ export default {
             });
           }
         } else {
-          this.setImageSize();
+          this.setVideoSize();
+          this.setFinalVideoSize();
         }
       }
     },

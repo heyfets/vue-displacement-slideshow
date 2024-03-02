@@ -10968,7 +10968,8 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
         this.setVideoSize();
       } else {
         if (mediaElement.image && mediaElement.image instanceof HTMLCanvasElement) {
-          this.setImageSize();
+          this.setVideoSize();
+          this.setFinalVideoSize();
           return;
         }
         const fileExtension = mediaElement.image.src.split('.').pop();
@@ -10986,7 +10987,8 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
             });
           }
         } else {
-          this.setImageSize();
+          this.setVideoSize();
+          this.setFinalVideoSize();
         }
       }
     },
@@ -11264,6 +11266,7 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
           x: e.clientX - sliderPosition.left,
           y: e.clientY - sliderPosition.top
         };
+        this.mat.uniforms.u_rgbPosition.value = new __WEBPACK_IMPORTED_MODULE_10_three_src_math_Vector2_js__["a" /* Vector2 */](this.mousePosition.x, this.mousePosition.y);
       }
     },
     getMouseSpeed() {
