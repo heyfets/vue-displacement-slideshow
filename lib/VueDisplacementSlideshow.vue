@@ -247,15 +247,14 @@ export default {
       this.currentImage = this.nextImage;
       this.setSize();
     },
-    loadTextures() {
-      this.images.forEach((image, index) => {
-        let textureLoaded = this.insertImage(image, index);
-        this.imagesLoaded.push(textureLoaded)
-      });
+    async loadTextures() {
+      const promises = this.images.map((image, index) => this.insertImage(image, index));
 
-      if (this.startAsTransparent) {
-        this.insertTransparentTexture(0);
-      }
+      // if (this.startAsTransparent) {
+      //   promises.push(this.insertTransparentTexture(0));
+      // }
+
+      this.imagesLoaded = await Promise.all(promises);
 
       const loader = new TextureLoader();
       this.disp = loader.load(this.displacement, this.render);
@@ -269,6 +268,7 @@ export default {
         width: this.preserveAspectRatio ? this.slider.offsetWidth : this.textures[this.currentImage].image.naturalWidth,
         height: this.preserveAspectRatio ? this.slider.offsetHeight : this.textures[this.currentImage].image.naturalHeight
       };
+
       this.mat = new ShaderMaterial({
         uniforms: {
           intensity1: {type: 'f', value: this.intensity},
@@ -317,17 +317,15 @@ export default {
       const object = new Mesh(geometry, this.mat);
       scene.add(object);
     },
-    init() {
+    async init() {
       this.initScene();
-      this.loadTextures();
-      Promise.all(this.imagesLoaded).then(() => {
-        this.initShaderMaterial();
-        this.loaded = true;
-        this.$emit("loaded");
-        this.firstLoading = 1;
-        this.setSize(false);
-        this.render();
-      })
+      await this.loadTextures();
+      this.initShaderMaterial();
+      this.loaded = true;
+      this.$emit("loaded");
+      this.firstLoading = 1;
+      this.setSize(false);
+      this.render();
     },
     setSize(orientationChanged = false) {
       let mediaElement = this.textures[this.currentImage];
@@ -488,7 +486,7 @@ export default {
       ).then((response) => {
         this.tVideo[index].crossOrigin = "anonymous";
         this.tVideo[index].src = response.url;
-        this.tVideo[index].currentTime = currentTime;
+        this.tVideo[index].currentTime = _.isUndefined(currentTime) ? 0 : currentTime;
         __callback;
         __final_callback;
         if(play_after === true) {
@@ -509,29 +507,32 @@ export default {
         this.getMediaURLForTrack(mediaElement.link, this.insertVideo(index, path), index);
       } else {
         if (path === 'blank-texture') {
-          const canvas = document.createElement('canvas');
-          canvas.width = 1;
-          canvas.height = 1;
-
-          const context = canvas.getContext('2d');
-          context.fillStyle = 'rgba(255,255,255,1)'; // Прозрачно-белый
-          context.fillRect(0, 0, canvas.width, canvas.height);
-
           return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1;
+            canvas.height = 1;
+
+            const context = canvas.getContext('2d');
+            context.fillStyle = 'rgba(255,255,255,1)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
             let texture = new Texture(canvas);
-            this.render();
-            resolve();
             texture.magFilter = LinearFilter;
             texture.minFilter = LinearFilter;
             texture.alpha = 1;
             texture.textureContent = null;
             texture.needsUpdate = true;
+            texture.context = context;
+
             this.textures.splice(index, 0, texture);
 
             if (index <= this.currentImage && this.loaded) {
               //We change the currentImage only if we loaded all  the images and the action is triggered from  the parent
               this.currentImage++;
             }
+
+            this.render();
+            resolve();
           });
         }
         const video = document.createElement('video');
