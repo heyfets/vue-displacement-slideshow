@@ -10877,11 +10877,11 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
       this.setSize();
     },
     async loadTextures() {
-      const promises = this.images.map((image, index) => this.insertImage(image, index));
-
-      // if (this.startAsTransparent) {
-      //   promises.push(this.insertTransparentTexture(0));
-      // }
+      const promises = [];
+      if (this.startAsTransparent) {
+        promises.push(this.insertTransparentTexture());
+      }
+      promises.push(this.images.map((image, index) => this.insertImage(image, index)));
 
       this.imagesLoaded = await Promise.all(promises);
 
@@ -11229,14 +11229,15 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
         texture.matrix.setUvTransform(0, 0, 1, videoAspect / aspect, 0, 0.5, 0.5);
       }
     },
-    insertTransparentTexture(index) {
-      const texture = new __WEBPACK_IMPORTED_MODULE_9_three_src_textures_Texture_js__["a" /* Texture */]();
-      texture.image = {
-        naturalWidth: this.slider.offsetWidth,
-        naturalHeight: this.slider.offsetHeight
-      };
-      texture.alpha = 0;
-      this.textures.splice(index, 0, texture);
+    insertTransparentTexture() {
+      return new Promise(resolve => {
+        const texture = new __WEBPACK_IMPORTED_MODULE_9_three_src_textures_Texture_js__["a" /* Texture */]();
+        texture.image = {
+          naturalWidth: this.slider.offsetWidth,
+          naturalHeight: this.slider.offsetHeight
+        };
+        texture.alpha = 1;
+      });
     },
     removeImage(index) {
       if (index !== this.currentImage) {
