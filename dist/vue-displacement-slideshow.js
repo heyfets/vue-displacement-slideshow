@@ -10666,9 +10666,6 @@ PerspectiveCamera.prototype = Object.assign( Object.create( __WEBPACK_IMPORTED_M
 
 
 
-const scene = new __WEBPACK_IMPORTED_MODULE_0_three_src_scenes_Scene_js__["a" /* Scene */]();
-const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRenderer_js__["a" /* WebGLRenderer */]({ antialias: false, alpha: true });
-
 /* harmony default export */ __webpack_exports__["a"] = ({
   name: "vue-displacement-slideshow",
   props: {
@@ -10734,6 +10731,8 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
   },
   data() {
     return {
+      scene: new __WEBPACK_IMPORTED_MODULE_0_three_src_scenes_Scene_js__["a" /* Scene */](),
+      renderer: new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRenderer_js__["a" /* WebGLRenderer */]({ antialias: false, alpha: true }),
       currentImage: 0,
       mat: null,
       textures: [],
@@ -10778,13 +10777,13 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
   },
   methods: {
     initScene() {
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setClearColor(0xffffff, 0.0);
-      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
-      this.$refs.slider.appendChild(renderer.domElement);
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+      this.renderer.setClearColor(0xffffff, 0.0);
+      this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+      this.$refs.slider.appendChild(this.renderer.domElement);
     },
     render() {
-      renderer.render(scene, this.camera);
+      this.renderer.render(this.scene, this.camera);
     },
     transitionIn() {
       this.currentTransition = __WEBPACK_IMPORTED_MODULE_11_gsap__["a" /* gsap */].to(this.mat.uniforms.dispFactor, {
@@ -10938,7 +10937,7 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
       });
       const geometry = new __WEBPACK_IMPORTED_MODULE_7_three_src_geometries_PlaneGeometry_js__["a" /* PlaneBufferGeometry */](this.slider.offsetWidth, this.slider.offsetHeight, 1);
       const object = new __WEBPACK_IMPORTED_MODULE_8_three_src_objects_Mesh_js__["a" /* Mesh */](geometry, this.mat);
-      scene.add(object);
+      this.scene.add(object);
     },
     async init() {
       this.initScene();
@@ -10966,7 +10965,6 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
         this.setVideoSize();
       } else {
         if (mediaElement.image && mediaElement.image instanceof HTMLCanvasElement) {
-          this.setVideoSize();
           this.setFinalVideoSize();
           return;
         }
@@ -10999,21 +10997,21 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
       if (video.width >= video.height) {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
           if (videoRatio <= offsetRatio) {
-            renderer.setSize(this.slider.offsetWidth, countedHeight);
+            this.renderer.setSize(this.slider.offsetWidth, countedHeight);
           } else {
-            renderer.setSize(countedWidth, this.slider.offsetHeight);
+            this.renderer.setSize(countedWidth, this.slider.offsetHeight);
           }
         } else {
-          renderer.setSize(countedWidth, this.slider.offsetHeight);
+          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
         }
       } else {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          renderer.setSize(this.slider.offsetWidth, countedHeight);
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight);
         } else {
           if (videoRatio >= offsetRatio) {
-            renderer.setSize(countedWidth, this.slider.offsetHeight);
+            this.renderer.setSize(countedWidth, this.slider.offsetHeight);
           } else {
-            renderer.setSize(this.slider.offsetWidth, countedHeight);
+            this.renderer.setSize(this.slider.offsetWidth, countedHeight);
           }
         }
       }
@@ -11023,14 +11021,14 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
         width: this.textures[this.currentImage].image.width ? this.textures[this.currentImage].image.width : this.textures[this.currentImage].image.naturalWidth,
         height: this.textures[this.currentImage].image.height ? this.textures[this.currentImage].image.height : this.textures[this.currentImage].image.naturalHeight
       };
-      this.camera.aspect = renderer.domElement.width / renderer.domElement.height;
+      this.camera.aspect = this.renderer.domElement.width / this.renderer.domElement.height;
       this.camera.updateProjectionMatrix();
       this.mat.uniforms.resolution.value.set(ratio.width, ratio.height);
       this.mat.uniforms.sliderResolution.value.set(this.slider.offsetWidth, this.slider.offsetHeight);
       this.render();
     },
     setImageSize() {
-      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+      this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
     },
     setMatchedVideo(videos, orientation = 'landscape') {
       let videoRendition;
@@ -11202,7 +11200,7 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
       const videoTexture = new __WEBPACK_IMPORTED_MODULE_4_three_src_textures_VideoTexture_js__["a" /* VideoTexture */](video);
       videoTexture.magFilter = __WEBPACK_IMPORTED_MODULE_5_three_src_constants_js__["O" /* LinearFilter */];
       videoTexture.minFilter = __WEBPACK_IMPORTED_MODULE_5_three_src_constants_js__["O" /* LinearFilter */];
-      videoTexture.format = __WEBPACK_IMPORTED_MODULE_14_three__["a" /* RGBFormat */];
+      videoTexture.format = __WEBPACK_IMPORTED_MODULE_14_three__["b" /* RGBFormat */];
       videoTexture.alpha = 1;
       videoTexture.isVideo = 1;
       videoTexture.textureContent = textureContent;
@@ -11236,7 +11234,7 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
           naturalWidth: this.slider.offsetWidth,
           naturalHeight: this.slider.offsetHeight
         };
-        texture.alpha = 1;
+        texture.alpha = 0;
       });
     },
     removeImage(index) {
@@ -11295,6 +11293,23 @@ const renderer = new __WEBPACK_IMPORTED_MODULE_1_three_src_renderers_WebGLRender
   },
   beforeDestroy() {
     cancelAnimationFrame(this.rafID);
+    this.renderer.dispose();
+    this.scene.traverse(object => {
+      if (object instanceof __WEBPACK_IMPORTED_MODULE_14_three__["a" /* Mesh */]) {
+        if (object.geometry) {
+          object.geometry.dispose();
+        }
+        if (object.material) {
+          if (object.material instanceof Array) {
+            object.material.forEach(material => material.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      }
+    });
+    this.renderer.forceContextLoss();
+
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('mousemove', this.onMouseMove);
   }
@@ -40870,7 +40885,7 @@ function mod(x, y) {
 /* unused harmony export Matrix3 */
 /* unused harmony export Matrix4 */
 /* unused harmony export MaxEquation */
-/* unused harmony export Mesh */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Mesh; });
 /* unused harmony export MeshBasicMaterial */
 /* unused harmony export MeshDepthMaterial */
 /* unused harmony export MeshDistanceMaterial */
@@ -40970,7 +40985,7 @@ function mod(x, y) {
 /* unused harmony export RGBDEncoding */
 /* unused harmony export RGBEEncoding */
 /* unused harmony export RGBEFormat */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return RGBFormat; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return RGBFormat; });
 /* unused harmony export RGBM16Encoding */
 /* unused harmony export RGBM7Encoding */
 /* unused harmony export RGB_ETC1_Format */

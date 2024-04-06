@@ -23,9 +23,6 @@ import {mod} from './utils.js';
 import * as THREE from "three";
 import _ from "lodash";
 
-const scene = new Scene();
-const renderer = new WebGLRenderer({antialias: false, alpha: true});
-
 export default {
   name: "vue-displacement-slideshow",
   props: {
@@ -91,6 +88,8 @@ export default {
   },
   data() {
     return {
+      scene: new Scene(),
+      renderer: new WebGLRenderer({antialias: false, alpha: true}),
       currentImage: 0,
       mat: null,
       textures: [],
@@ -149,13 +148,13 @@ export default {
   },
   methods: {
     initScene() {
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setClearColor(0xffffff, 0.0);
-      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
-      this.$refs.slider.appendChild(renderer.domElement);
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+      this.renderer.setClearColor(0xffffff, 0.0);
+      this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+      this.$refs.slider.appendChild(this.renderer.domElement);
     },
     render() {
-      renderer.render(scene, this.camera);
+      this.renderer.render(this.scene, this.camera);
     },
     transitionIn() {
       this.currentTransition = gsap.to(this.mat.uniforms.dispFactor, {
@@ -315,7 +314,7 @@ export default {
       });
       const geometry = new PlaneBufferGeometry(this.slider.offsetWidth, this.slider.offsetHeight, 1);
       const object = new Mesh(geometry, this.mat);
-      scene.add(object);
+      this.scene.add(object);
     },
     async init() {
       this.initScene();
@@ -343,7 +342,6 @@ export default {
         this.setVideoSize();
       } else {
         if (mediaElement.image && mediaElement.image instanceof HTMLCanvasElement) {
-          this.setVideoSize();
           this.setFinalVideoSize();
           return;
         }
@@ -376,21 +374,21 @@ export default {
       if (video.width >= video.height) {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
           if (videoRatio <=offsetRatio) {
-            renderer.setSize(this.slider.offsetWidth, countedHeight);
+            this.renderer.setSize(this.slider.offsetWidth, countedHeight);
           } else {
-            renderer.setSize(countedWidth, this.slider.offsetHeight);
+            this.renderer.setSize(countedWidth, this.slider.offsetHeight);
           }
         } else {
-          renderer.setSize(countedWidth, this.slider.offsetHeight);
+          this.renderer.setSize(countedWidth, this.slider.offsetHeight);
         }
       } else {
         if (this.slider.offsetWidth > this.slider.offsetHeight) {
-          renderer.setSize(this.slider.offsetWidth, countedHeight );
+          this.renderer.setSize(this.slider.offsetWidth, countedHeight );
         } else {
           if (videoRatio >=offsetRatio) {
-            renderer.setSize(countedWidth, this.slider.offsetHeight);
+            this.renderer.setSize(countedWidth, this.slider.offsetHeight);
           } else {
-            renderer.setSize(this.slider.offsetWidth, countedHeight );
+            this.renderer.setSize(this.slider.offsetWidth, countedHeight );
           }
         }
       }
@@ -400,14 +398,14 @@ export default {
         width: this.textures[this.currentImage].image.width ? this.textures[this.currentImage].image.width : this.textures[this.currentImage].image.naturalWidth,
         height: this.textures[this.currentImage].image.height ? this.textures[this.currentImage].image.height : this.textures[this.currentImage].image.naturalHeight
       };
-      this.camera.aspect = renderer.domElement.width / renderer.domElement.height;
+      this.camera.aspect = this.renderer.domElement.width / this.renderer.domElement.height;
       this.camera.updateProjectionMatrix();
       this.mat.uniforms.resolution.value.set(ratio.width, ratio.height);
       this.mat.uniforms.sliderResolution.value.set(this.slider.offsetWidth, this.slider.offsetHeight);
       this.render();
     },
     setImageSize() {
-      renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
+      this.renderer.setSize(this.slider.offsetWidth, this.slider.offsetHeight);
     },
     setMatchedVideo(videos, orientation = 'landscape') {
       let videoRendition;
@@ -682,6 +680,23 @@ export default {
   },
   beforeDestroy() {
     cancelAnimationFrame(this.rafID);
+    this.renderer.dispose();
+    this.scene.traverse(object => {
+      if (object instanceof THREE.Mesh) {
+        if (object.geometry) {
+          object.geometry.dispose();
+        }
+        if (object.material) {
+          if (object.material instanceof Array) {
+            object.material.forEach(material => material.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      }
+    });
+    this.renderer.forceContextLoss();
+
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('mousemove', this.onMouseMove);
   },
